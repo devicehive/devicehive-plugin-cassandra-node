@@ -39,7 +39,7 @@
     }
   },
 
-  "commandTables": ["commands", "commands_test"],
+  "commandTables": ["commands"],
   "notificationTables": ["notifications"],
   "commandUpdatesTables": ["command_updates"]
 }
