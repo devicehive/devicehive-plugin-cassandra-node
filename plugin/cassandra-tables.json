@@ -14,19 +14,6 @@
       }
     },
 
-    "commands_test": {
-      "command": "text",
-      "deviceId": "text",
-      "timestamp": "timestamp",
-      "id": "int",
-
-      "__primaryKey__": [ "id" ],
-      "__clusteredKey__": [ "timestamp" ],
-      "__order__": {
-        "timestamp": "DESC"
-      }
-    },
-
     "notifications": {
       "notification": "text",
       "deviceId": "text",

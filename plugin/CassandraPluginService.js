@@ -1,7 +1,7 @@
 const { DeviceHivePlugin } = require(`devicehive-plugin-core`);
 const { MessageBuilder, MessageUtils } = require(`devicehive-proxy-message`);
 
-const cassandraConfig = require(`./cassandra-config.json`);
+const cassandraConfig = require(`./config`).cassandra;
 const cassandraTables = require('./cassandra-tables');
 const cassandraUDTs = require('./cassandra-user-types');
 const CassandraStorage = require('../cassandra');

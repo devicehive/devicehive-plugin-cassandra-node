@@ -1,4 +1,4 @@
-const config = require(`./config.json`);
+const config = require(`./plugin-config`);
 const { DeviceHivePlugin } = require(`devicehive-plugin-core`);
 const CassandraPluginService = require('./CassandraPluginService');
 
