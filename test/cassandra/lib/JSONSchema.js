@@ -85,4 +85,11 @@ describe('JSON Schema', () => {
         assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('ascii', 123), '123');
         assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('varchar', 123), '123');
     });
+
+    it('Should stringify to JSON object if Cassandra type is text, ascii or varchar', () => {
+        const obj = { prop: 'test' };
+        const stringified = JSON.stringify(obj);
+
+        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', obj), stringified);
+    });
 });
