@@ -1,0 +1,58 @@
+{
+  "tables": {
+    "commands": {
+      "command": "text",
+      "deviceId": "text",
+      "timestamp": "timestamp",
+      "id": "int",
+      "parameters": "frozen<params>",
+
+      "__primaryKey__": [ "command", "deviceId" ],
+      "__clusteredKey__": [ "timestamp" ],
+      "__order__": {
+        "timestamp": "DESC"
+      }
+    },
+
+    "commands_test": {
+      "command": "text",
+      "deviceId": "text",
+      "timestamp": "timestamp",
+      "id": "int",
+
+      "__primaryKey__": [ "id" ],
+      "__clusteredKey__": [ "timestamp" ],
+      "__order__": {
+        "timestamp": "DESC"
+      }
+    },
+
+    "notifications": {
+      "notification": "text",
+      "deviceId": "text",
+      "timestamp": "timestamp",
+
+      "__primaryKey__": [ "notification", "deviceId" ],
+      "__clusteredKey__": [ "timestamp" ],
+      "__order__": {
+        "timestamp": "DESC"
+      }
+    },
+
+    "command_updates": {
+      "command": "text",
+      "deviceId": "text",
+      "timestamp": "timestamp",
+
+      "__primaryKey__": [ "command", "deviceId" ],
+      "__clusteredKey__": [ "timestamp" ],
+      "__order__": {
+        "timestamp": "DESC"
+      }
+    }
+  },
+
+  "commandTables": ["commands", "commands_test"],
+  "notificationTables": ["notifications"],
+  "commandUpdatesTables": ["command_updates"]
+}

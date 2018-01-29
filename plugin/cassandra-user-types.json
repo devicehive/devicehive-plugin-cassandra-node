@@ -1,0 +1,7 @@
+{
+  "params": {
+    "name": "text",
+    "id": "int",
+    "address": "inet"
+  }
+}

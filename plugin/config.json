@@ -1,0 +1,14 @@
+{
+    "DEVICE_HIVE_PLUGIN_WS_ENDPOINT": "ws://localhost:3001",
+    "DEVICE_HIVE_AUTH_SERVICE_API_URL": "http://localhost:8090/dh/rest",
+    "PLUGIN_TOPIC": "",
+    "PLUGIN_TOKEN_LIFE_TIME_MIN": 30,
+    "USER_LOGIN": "",
+    "USER_PASSWORD": "",
+    "USER_ACCESS_TOKEN": "",
+    "USER_REFRESH_TOKEN": "",
+    "PLUGIN_ACCESS_TOKEN": "",
+    "PLUGIN_REFRESH_TOKEN": "",
+    "AUTO_SUBSCRIPTION_ON_START": true,
+    "SUBSCRIPTION_GROUP": ""
+}

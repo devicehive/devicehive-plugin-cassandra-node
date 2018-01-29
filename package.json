@@ -1,0 +1,29 @@
+{
+    "name": "devicehive-plugin-node-template",
+    "version": "1.1.0",
+    "description": "",
+    "main": "./plugin/index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/devicehive/devicehive-plugin-node-template.git"
+    },
+    "dependencies": {
+        "devicehive-plugin-core": "^1.0.3",
+        "devicehive-proxy-message": "^1.0.11",
+        "camel-case": "^3.0.0",
+        "cassandra-cql-builder": "^1.0.2",
+        "cassandra-driver": "^3.3.0",
+        "merge": "^1.2.0",
+        "smp-data-builder": "^1.0.3"
+    },
+    "devDependencies": {
+        "mocha": "^4.1.0",
+        "sinon": "^4.1.6"
+    },
+    "scripts": {
+        "start": "node ./plugin/index.js",
+        "test": "./node_modules/.bin/mocha --recursive"
+    },
+    "author": "Ihor T.",
+    "license": "Apache-2.0"
+}
