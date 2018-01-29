@@ -79,9 +79,13 @@ class JSONSchema {
     /**
      * Filters object properties based on schema
      * @param obj
-     * @returns {Object}
+     * @returns {Object | null}
      */
     filterData(obj) {
+        if (!obj) {
+            return null;
+        }
+
         const filteredObj = {};
 
         for (let prop in this._schema) {

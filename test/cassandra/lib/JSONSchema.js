@@ -71,6 +71,15 @@ describe('JSON Schema', () => {
         });
     });
 
+    it('Should return null in case object to be filtered is null or undefined', () => {
+        const jsonSchema = new JSONSchema({
+            col1: 'text'
+        });
+
+        assert.equal(jsonSchema.filterData(), null);
+        assert.equal(jsonSchema.filterData(null), null);
+    });
+
     it('Should cast value to string if Cassandra type is text, ascii or varchar', () => {
         assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', 123), '123');
         assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('ascii', 123), '123');

@@ -72,7 +72,7 @@ describe('Plugin', () => {
             isUpdated: true
         }).build();
 
-        const conf = require('../../plugin/cassandra-config');
+        const conf = require('../../plugin/config').cassandra;
         const commandsUpdatesStoring = conf.CUSTOM.COMMAND_UPDATES_STORING;
         conf.CUSTOM.COMMAND_UPDATES_STORING = true;
 
@@ -96,7 +96,7 @@ describe('Plugin', () => {
             isUpdated: true
         }).build();
 
-        const conf = require('../../plugin/cassandra-config');
+        const conf = require('../../plugin/config').cassandra;
         const commandsUpdatesStoring = conf.CUSTOM.COMMAND_UPDATES_STORING;
         conf.CUSTOM.COMMAND_UPDATES_STORING = false;
 
