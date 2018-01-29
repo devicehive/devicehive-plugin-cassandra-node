@@ -1,11 +1,11 @@
 {
-    "name": "devicehive-plugin-node-template",
-    "version": "1.1.0",
+    "name": "devicehive-plugin-cassandra-node",
+    "version": "1.0.0",
     "description": "",
     "main": "./plugin/index.js",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/devicehive/devicehive-plugin-node-template.git"
+        "url": "git+https://github.com/devicehive/devicehive-plugin-cassandra-node.git"
     },
     "dependencies": {
         "camel-case": "^3.0.0",
@@ -25,6 +25,6 @@
         "start": "node ./plugin/index.js",
         "test": "./node_modules/.bin/mocha --recursive"
     },
-    "author": "Ihor T.",
+    "author": "Alexei Torunov",
     "license": "Apache-2.0"
 }
