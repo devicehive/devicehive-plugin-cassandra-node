@@ -92,4 +92,9 @@ describe('JSON Schema', () => {
 
         assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', obj), stringified);
     });
+
+    it('Should return null if second argument (value) for cassandraStringTypeOrDefault is null or undefined', () => {
+        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text'), null);
+        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', null), null);
+    });
 });
