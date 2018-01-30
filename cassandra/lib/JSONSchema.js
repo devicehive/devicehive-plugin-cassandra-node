@@ -71,7 +71,7 @@ class JSONSchema {
     buildTableConfiguration() {
         const ordering = this.buildOrderDefinition();
         const options = this.buildOptions();
-        const tableConfig = [ordering, options].filter(str => Utils.isNotEmpty(str));
+        const tableConfig = [ordering, options].filter(Utils.isNotEmpty);
 
         return Utils.isNotEmpty(tableConfig) ? `WITH ${tableConfig.join(' AND ')}` : '';
     }
