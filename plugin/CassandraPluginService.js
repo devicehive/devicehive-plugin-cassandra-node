@@ -23,14 +23,19 @@ class CassandraPluginService extends PluginService {
     }
 
     handleCommand(command) {
+        super.handleCommand(command);
         this.cassandra.insertCommand(command);
     }
 
     handleCommandUpdate(command) {
-        this.cassandra.insertCommandUpdate(command);
+        super.handleCommand(command);
+        if (cassandraConfig.CUSTOM.COMMAND_UPDATES_STORING) {
+            this.cassandra.insertCommandUpdate(command);
+        }
     }
 
     handleNotification(notification) {
+        super.handleNotification(notification);
         this.cassandra.insertNotification(notification);
     }
 
