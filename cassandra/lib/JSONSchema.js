@@ -107,9 +107,14 @@ class JSONSchema {
      * @param {any} val
      * @returns {string | any}
      */
-    static cassandraStringTypeOrDefault(type, val) {
+    static cassandraStringTypeOrDefault(type, val = null) {
         const stringTypes = [ 'text', 'varchar', 'ascii' ];
-        return stringTypes.includes(type) ? val.toString() : val;
+
+        if (stringTypes.includes(type) && val !== null) {
+            return Utils.isObject(val) ? JSON.stringify(val) : val.toString();
+        }
+
+        return val;
     }
 
     /**
