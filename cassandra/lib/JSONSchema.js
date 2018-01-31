@@ -1,5 +1,5 @@
 const Utils = require('./Utils');
-const CassandraUtils = require('../src/CassandraUtils');
+const CassandraUtils = require('./CassandraUtils');
 
 class JSONSchema {
     static get PRIMARY_KEY() { return '__primaryKey__'; }

@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const CassandraUtils = require('../../../cassandra/src/CassandraUtils');
+const CassandraUtils = require('../../../cassandra/lib/CassandraUtils');
 
 describe('Cassandra Utils', () => {
     it('Should extract UDT name from column type with frozen<*>', () => {
