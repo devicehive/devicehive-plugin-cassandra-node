@@ -4,12 +4,6 @@ const camelCase = require('camel-case');
 const Utils = require('../lib/Utils');
 
 class CassandraConfigurator {
-    static get RECONNECTION_POLICY() { return 'reconnection'; }
-    static get SPECULATIVE_EXEC_POLICY() { return 'speculativeExecution'; }
-    static get TIMESTAMP_GENERATION_POLICY() { return 'timestampGeneration'; }
-    static get LOAD_BALANCING_POLICY() { return 'loadBalancing'; }
-    static get RETRY_POLICY() { return 'retry'; }
-
     constructor(config) {
         this._config = Utils.copy(config);
     }
@@ -136,6 +130,12 @@ class CassandraConfigurator {
         const policyClassesParams = orderedConstructorParams[policy];
         return policyClassesParams ? policyClassesParams[className] : [];
     }
+
+    static get RECONNECTION_POLICY() { return 'reconnection'; }
+    static get SPECULATIVE_EXEC_POLICY() { return 'speculativeExecution'; }
+    static get TIMESTAMP_GENERATION_POLICY() { return 'timestampGeneration'; }
+    static get LOAD_BALANCING_POLICY() { return 'loadBalancing'; }
+    static get RETRY_POLICY() { return 'retry'; }
 }
 
 const orderedConstructorParams = {
