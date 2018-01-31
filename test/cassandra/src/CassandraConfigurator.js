@@ -1,28 +1,32 @@
 const assert = require('assert');
 
+const cassandraDriver = require('cassandra-driver');
+const { policies: cassandraPolicies } = cassandraDriver;
+
 const CassandraConfigurator = require('../../../cassandra/src/CassandraConfigurator');
 
 describe('Cassandra Config', () => {
     it('Should create authentication provider instance (authProvider property) if username and password are defined', () => {
-        const conf = new CassandraConfigurator({
+        const config = new CassandraConfigurator({
             username: 'test',
             password: 'test'
-        }).configAuthProvider();
+        }).configAuthProvider().config;
 
-        assert.equal(typeof conf.config.authProvider, 'object');
+        assert.ok(config.authProvider instanceof cassandraDriver.auth.PlainTextAuthProvider);
     });
 
     it('Should create address resolution policy instance (policies.addressResolution) if address resolution policy type is defined', () => {
-        const conf = new CassandraConfigurator({
-            policies: {
-                addressResolution: 'AddressTranslator'
-            }
-        }).configAddressResolution();
+        const policies = {
+            addressResolution: 'AddressTranslator'
+        };
+        const { AddressTranslator } = cassandraPolicies.addressResolution;
 
-        assert.equal(typeof conf.config.policies.addressResolution, 'object');
+        const config = new CassandraConfigurator({ policies }).configAddressResolution().config;
+
+        assert.ok(config.policies.addressResolution instanceof AddressTranslator);
     });
 
-    it('Should create reconnection policy instance (policies.reconnection) if reconnection policy type is defined', () => {
+    it('Should create reconnection policy instance (policies.reconnection) if reconnection policy is defined', () => {
         const policies = {
             reconnection: {
                 type: 'ExponentialReconnectionPolicy',
@@ -33,12 +37,14 @@ describe('Cassandra Config', () => {
                 }
             }
         };
-        const conf = new CassandraConfigurator({ policies }).configReconnection();
+        const { ExponentialReconnectionPolicy } = cassandraPolicies.reconnection;
 
-        assert.equal(typeof conf.config.policies.reconnection, 'object');
+        const config = new CassandraConfigurator({ policies }).configReconnection().config;
+
+        assert.ok(config.policies.reconnection instanceof ExponentialReconnectionPolicy);
     });
 
-    it('Should create speculative execution policy instance (policies.speculativeExecution) if speculative execution policy type is defined', () => {
+    it('Should create speculative execution policy instance (policies.speculativeExecution) if speculative execution policy is defined', () => {
         const policies = {
             speculativeExecution: {
                 type: 'ConstantSpeculativeExecutionPolicy',
@@ -48,12 +54,14 @@ describe('Cassandra Config', () => {
                 }
             }
         };
-        const conf = new CassandraConfigurator({ policies }).configSpeculativeExecution();
+        const { ConstantSpeculativeExecutionPolicy } = cassandraPolicies.speculativeExecution;
 
-        assert.equal(typeof conf.config.policies.speculativeExecution, 'object');
+        const config = new CassandraConfigurator({ policies }).configSpeculativeExecution().config;
+
+        assert.ok(config.policies.speculativeExecution instanceof ConstantSpeculativeExecutionPolicy);
     });
 
-    it('Should create timestamp generation policy instance (policies.timestampGeneration) if timestamp generation policy type is defined', () => {
+    it('Should create timestamp generation policy instance (policies.timestampGeneration) if timestamp generation policy is defined', () => {
         const policies = {
             timestampGeneration: {
                 type: 'MonotonicTimestampGenerator',
@@ -63,9 +71,54 @@ describe('Cassandra Config', () => {
                 }
             }
         };
-        const conf = new CassandraConfigurator({ policies }).configTimestampGeneration();
+        const { MonotonicTimestampGenerator } = cassandraPolicies.timestampGeneration;
 
-        assert.equal(typeof conf.config.policies.timestampGeneration, 'object');
+        const config = new CassandraConfigurator({ policies }).configTimestampGeneration().config;
+
+        assert.ok(config.policies.timestampGeneration instanceof MonotonicTimestampGenerator);
+    });
+
+    it('Should create wrapped load balancing policy instance (policies.loadBalancing) if load balancing policy is defined with childPolicy', () => {
+        const policies = {
+            loadBalancing: {
+                type: 'WhiteListPolicy',
+                params: {
+                    childPolicy: {
+                        type: 'DCAwareRoundRobinPolicy',
+                        params: {
+                            localDc: '127.0.0.1',
+                            usedHostsPerRemoteDc: 2
+                        }
+                    },
+                    whiteList: [ '127.0.0.1', '0.0.0.0' ]
+                }
+            }
+        };
+        const { WhiteListPolicy, DCAwareRoundRobinPolicy } = cassandraPolicies.loadBalancing;
+
+        const config = new CassandraConfigurator({ policies }).configLoadBalancing().config;
+
+        assert.ok(config.policies.loadBalancing instanceof WhiteListPolicy);
+        assert.ok(config.policies.loadBalancing.childPolicy instanceof DCAwareRoundRobinPolicy);
+    });
+
+    it('Should create wrapped retry policy instance (policies.retry) if retry policy is defined with childPolicy', () => {
+        const policies = {
+            retry: {
+                type: 'IdempotenceAwareRetryPolicy',
+                params: {
+                    childPolicy: {
+                        type: 'RetryPolicy'
+                    }
+                }
+            }
+        };
+        const { IdempotenceAwareRetryPolicy, RetryPolicy } = cassandraPolicies.retry;
+
+        const config = new CassandraConfigurator({ policies }).configRetry().config;
+
+        assert.ok(config.policies.retry instanceof IdempotenceAwareRetryPolicy);
+        assert.ok(config.policies.retry._childPolicy instanceof RetryPolicy);
     });
 
     it('Should transform environment variable into config property format', () => {
