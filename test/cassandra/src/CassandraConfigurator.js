@@ -135,7 +135,8 @@ describe('Cassandra Config', () => {
                 'KEEP_ALIVE': 'true',
                 'CONNECT_TIMEOUT': '5000'
             },
-            'CONTACT_POINTS': '127.0.0.1, 0.0.0.0'
+            'CONTACT_POINTS': '127.0.0.1, 0.0.0.0',
+            'TEST_PROPERTY': 't,e,s,t'
         };
 
         const expectedConf = {
@@ -146,7 +147,8 @@ describe('Cassandra Config', () => {
                 keepAlive: true,
                 connectTimeout: '5000'
             },
-            contactPoints: [ '127.0.0.1', '0.0.0.0' ]
+            contactPoints: [ '127.0.0.1', '0.0.0.0' ],
+            testProperty: [ 't', 'e', 's', 't' ]
         };
         const normalizedConf = CassandraConfigurator.normalizeConfig(envConfig);
 
