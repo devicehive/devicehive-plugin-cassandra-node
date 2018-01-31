@@ -28,7 +28,7 @@ class CassandraPluginService extends PluginService {
     }
 
     handleCommandUpdate(command) {
-        super.handleCommand(command);
+        super.handleCommandUpdate(command);
         if (cassandraConfig.CUSTOM.COMMAND_UPDATES_STORING) {
             this.cassandra.insertCommandUpdate(command);
         }
