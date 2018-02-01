@@ -8,7 +8,7 @@ class CassandraStorage {
 
     constructor(cassandraClient) {
         this._cassandra = cassandraClient;
-        this._entityTypeToTablesMap = new Map();
+        this._tableGroups = new Map();
         this._tableSchemas = null;
         this._userTypes = null;
     }
@@ -66,7 +66,7 @@ class CassandraStorage {
      * @returns {CassandraStorage}
      */
     assignTablesToCommands(...tableNames) {
-        this._entityTypeToTablesMap.set(CassandraStorage.COMMAND_GROUP, tableNames);
+        this._tableGroups.set(CassandraStorage.COMMAND_GROUP, tableNames);
         return this;
     }
 
@@ -76,7 +76,7 @@ class CassandraStorage {
      * @returns {CassandraStorage}
      */
     assignTablesToNotifications(...tableNames) {
-        this._entityTypeToTablesMap.set(CassandraStorage.NOTIFICATION_GROUP, tableNames);
+        this._tableGroups.set(CassandraStorage.NOTIFICATION_GROUP, tableNames);
         return this;
     }
 
@@ -86,7 +86,7 @@ class CassandraStorage {
      * @returns {CassandraStorage}
      */
     assignTablesToCommandUpdates(...tableNames) {
-        this._entityTypeToTablesMap.set(CassandraStorage.COMMAND_UPDATES_GROUP, tableNames);
+        this._tableGroups.set(CassandraStorage.COMMAND_UPDATES_GROUP, tableNames);
         return this;
     }
 
@@ -125,7 +125,7 @@ class CassandraStorage {
      * @private
      */
     _insertIntoTableGroup(groupName, data) {
-        const tablesToInsert = this._entityTypeToTablesMap.get(groupName) || [];
+        const tablesToInsert = this._tableGroups.get(groupName) || [];
         const queries = [];
 
         tablesToInsert.forEach(table => {

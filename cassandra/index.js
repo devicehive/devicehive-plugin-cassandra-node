@@ -2,7 +2,7 @@ const cassandraDriver = require('cassandra-driver');
 
 const CassandraStorage = require('./src/CassandraStorage');
 const Utils = require('./lib/Utils');
-const CassandraUtils = require('./lib/CassandraUtils');
+const CassandraConfigurator = require('./src/CassandraConfigurator');
 
 const defaultConfig = require('./config');
 
@@ -20,12 +20,19 @@ module.exports = {
 };
 
 function createConfig(userConfig) {
-    const conf = CassandraUtils.normalizeConfig(Utils.merge({}, defaultConfig, userConfig));
-    const { username, password } = conf.connection;
+    const conf = CassandraConfigurator.normalizeConfig(Utils.merge({}, defaultConfig, userConfig));
+    const configurator = new CassandraConfigurator(conf.connection);
 
-    if(username && password) {
-        conf.connection.authProvider = new cassandraDriver.auth.PlainTextAuthProvider(username, password);
-    }
+    configurator.configAuthProvider()
+        .configReconnection()
+        .configAddressResolution()
+        .configSpeculativeExecution()
+        .configTimestampGeneration()
+        .configLoadBalancing()
+        .configRetry();
+
+
+    conf.connection = configurator.config;
 
     return conf;
 }
