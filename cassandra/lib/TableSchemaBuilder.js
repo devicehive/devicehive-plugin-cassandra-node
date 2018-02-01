@@ -18,11 +18,12 @@ class TableSchemaBuilder extends BaseSchemaBuilder {
      */
     fromJSONSchema(schemaDescription) {
         const jsonSchema = new JSONSchema(schemaDescription);
+
         const columns = jsonSchema.buildColumnsDefinition();
         const keys = jsonSchema.buildKeys();
-        const ordering = jsonSchema.buildOrderDefinition();
+        const tableConfig = jsonSchema.buildTableConfiguration();
 
-        this._definition = `(${columns},${keys}) ${ordering}`.trim();
+        this._definition = `(${columns},${keys}) ${tableConfig}`.trim();
 
         return this;
     }

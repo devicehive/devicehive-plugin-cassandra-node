@@ -5,6 +5,7 @@ class JSONSchema {
     static get PRIMARY_KEY() { return '__primaryKey__'; }
     static get CLUSTERED_KEY() { return '__clusteredKey__'; }
     static get ORDER() { return '__order__'; }
+    static get OPTIONS() { return '__options__'; }
 
     constructor(schema = {}) {
         this._schema = Utils.copy(schema);
@@ -30,7 +31,7 @@ class JSONSchema {
     }
 
     /**
-     * Construct definition of one column with type
+     * Constructs definition of one column with type
      * @param columnName
      * @returns {string}
      */
@@ -54,7 +55,7 @@ class JSONSchema {
         const primaryKeyColumns = this._schema[JSONSchema.PRIMARY_KEY].join(',');
         let primaryKeyDefinition = `(${primaryKeyColumns})`;
 
-        if(JSONSchema.validClusteredKey(this._schema)) {
+        if (JSONSchema.validClusteredKey(this._schema)) {
             const clusteredKeyColumns = this._schema[JSONSchema.CLUSTERED_KEY].join(',');
             primaryKeyDefinition += `,${clusteredKeyColumns}`;
         }
@@ -63,8 +64,24 @@ class JSONSchema {
         return `PRIMARY KEY(${primaryKeyDefinition})`;
     }
 
+    /**
+     * Constructs table options with table ordering
+     * @returns {string}
+     */
+    buildTableConfiguration() {
+        const ordering = this.buildOrderDefinition();
+        const options = this.buildOptions();
+        const tableConfig = [ordering, options].filter(Utils.isNotEmpty);
+
+        return Utils.isNotEmpty(tableConfig) ? `WITH ${tableConfig.join(' AND ')}` : '';
+    }
+
+    /**
+     * Constructs table ordering
+     * @returns {string}
+     */
     buildOrderDefinition() {
-        const orderingRules = this._schema[JSONSchema.ORDER];
+        const orderingRules = this._schema[JSONSchema.ORDER] || {};
         const orderBy = [];
 
         for (let columnName in orderingRules) {
@@ -73,7 +90,34 @@ class JSONSchema {
             }
         }
 
-        return orderBy.length ? `WITH CLUSTERING ORDER BY(${orderBy.join(',')})` : '';
+        return orderBy.length ? `CLUSTERING ORDER BY(${orderBy.join(',')})` : '';
+    }
+
+    /**
+     * Constructs table options
+     * @returns {string}
+     */
+    buildOptions() {
+        const options = this._schema[JSONSchema.OPTIONS] || {};
+        const optionStrings = [];
+
+        for (const name in options) {
+            if (options.hasOwnProperty(name)) {
+                const value = JSONSchema.cassandraOptionValue(options[name]);
+                optionStrings.push(`${name} = ${value}`);
+            }
+        }
+
+        return optionStrings.join(' AND ');
+    }
+
+    /**
+     * Format value to Cassandra option value
+     * @param {any} value
+     * @returns {string | any}
+     */
+    static cassandraOptionValue(value) {
+        return JSON.stringify(value).replace(/"/g, '\'');
     }
 
     /**
@@ -148,7 +192,8 @@ class JSONSchema {
         const reservedProps = [
             JSONSchema.PRIMARY_KEY,
             JSONSchema.CLUSTERED_KEY,
-            JSONSchema.ORDER
+            JSONSchema.ORDER,
+            JSONSchema.OPTIONS
         ];
 
         return !reservedProps.includes(propName);
