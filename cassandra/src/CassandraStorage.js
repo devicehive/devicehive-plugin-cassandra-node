@@ -162,6 +162,27 @@ class CassandraStorage {
         this._userTypes = value;
         return this;
     }
+
+    checkAllSchemasExist(callback) {
+        const tableSchemasCheck = [];
+        const udtSchemasCheck = [];
+        const ks = this._cassandra.keyspace;
+
+        for (let tableName in this._tableSchemas) {
+            tableSchemasCheck.push(this._cassandra.metadata.getTable(ks, tableName));
+        }
+
+        for (let udtName in this._userTypes) {
+            udtSchemasCheck.push(this._cassandra.metadata.getUdt(ks, udtName));
+        }
+
+        Promise.all(tableSchemasCheck.concat(udtSchemasCheck)).then(results => {
+            const allSchemasExist = results.every(r => r);
+            callback(allSchemasExist);
+        });
+
+        return this;
+    }
 }
 
 module.exports = CassandraStorage;
