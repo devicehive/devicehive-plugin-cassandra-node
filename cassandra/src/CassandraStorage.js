@@ -169,11 +169,15 @@ class CassandraStorage {
         const ks = this._cassandra.keyspace;
 
         for (let tableName in this._tableSchemas) {
-            tableSchemasCheck.push(this._cassandra.metadata.getTable(ks, tableName));
+            if (this._tableSchemas.hasOwnProperty(tableName)) {
+                tableSchemasCheck.push(this._cassandra.metadata.getTable(ks, tableName));
+            }
         }
 
         for (let udtName in this._userTypes) {
-            udtSchemasCheck.push(this._cassandra.metadata.getUdt(ks, udtName));
+            if (this._userTypes.hasOwnProperty(udtName)) {
+                udtSchemasCheck.push(this._cassandra.metadata.getUdt(ks, udtName));
+            }
         }
 
         Promise.all(tableSchemasCheck.concat(udtSchemasCheck)).then(results => {

@@ -200,7 +200,7 @@ describe('Cassandra Storage Provider', () => {
         assert.deepEqual(getUdt.firstCall.args, [ 'test_keyspace', 'udt' ]);
     });
 
-    it('Should invoke callback with false if some schemas do not exist', () => {
+    it('Should invoke callback with false if some schemas do not exist', done => {
         const { getUdt } = MockCassandraClient.prototype.metadata;
         getUdt.returns(Promise.resolve(null));
 
@@ -214,7 +214,14 @@ describe('Cassandra Storage Provider', () => {
         const callback = sinon.stub();
         cassandra.checkAllSchemasExist(callback);
 
-        assert.ok(callback.calledOnce);
-        assert.equal(callback.firstCall.args[0], false);
+        asyncAssertion(() => {
+            assert.ok(callback.calledOnce);
+            assert.equal(callback.firstCall.args[0], false);
+            done();
+        });
     });
 });
+
+function asyncAssertion(callback) {
+    setTimeout(callback, 0);
+}

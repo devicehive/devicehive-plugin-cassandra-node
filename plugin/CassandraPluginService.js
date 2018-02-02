@@ -16,7 +16,12 @@ class CassandraPluginService extends PluginService {
     afterStart() {
         super.afterStart();
 
-        this.cassandra = this.initCassandra();
+        this.initCassandra().then(cassandra => {
+            this.cassandra = cassandra;
+        }).catch(err => {
+            this.onError(err);
+            process.exit(1);
+        });
     }
 
     handleCommand(command) {
@@ -39,11 +44,34 @@ class CassandraPluginService extends PluginService {
     initCassandra() {
         const cassandra = CassandraStorage.connect(cassandraConfig);
 
-        cassandra.assignTablesToCommands(...cassandraTables.commandTables);
-        cassandra.assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables);
-        cassandra.assignTablesToNotifications(...cassandraTables.notificationTables);
+        cassandra.setUDTSchemas(cassandraUDTs)
+            .setTableSchemas(cassandraTables.tables)
+            .assignTablesToCommands(...cassandraTables.commandTables)
+            .assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables)
+            .assignTablesToNotifications(...cassandraTables.notificationTables);
 
-        return cassandra.setUDTSchemas(cassandraUDTs).setTableSchemas(cassandraTables.tables);
+        return this.ensureSchemasExist(cassandra);
+    }
+
+    ensureSchemasExist(cassandra) {
+        return new Promise((resolve, reject) => {
+            let checkNumber = 0;
+            const checking = setInterval(() => {
+                if (checkNumber >= +cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT) {
+                    clearInterval(checking);
+                    reject(new Error('CASSANDRA SCHEMAS HAVE NOT BEEN CREATED'));
+                    return;
+                }
+
+                checkNumber++;
+                cassandra.checkAllSchemasExist(exist => {
+                    if (exist) {
+                        resolve(cassandra);
+                        clearInterval(checking);
+                    }
+                });
+            }, +cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL);
+        });
     }
 }
 
