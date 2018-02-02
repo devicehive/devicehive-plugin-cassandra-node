@@ -18,9 +18,9 @@ class CassandraStorage {
      * @param {object} tables
      * @returns {Promise<any[]>} All results of executed queries
      */
-    initializeTableSchemas(tables) {
-        this._tableSchemas = tables;
-        return this._initializeSchemas(CQLBuilder.createTable(), tables);
+    createTableSchemas(tables) {
+        this.setTableSchemas(tables);
+        return this._createSchemas(CQLBuilder.createTable(), tables);
     }
 
     /**
@@ -28,9 +28,9 @@ class CassandraStorage {
      * @param {object} types
      * @returns {Promise<any[]>} All results of executed queries
      */
-    initializeUDTSchemas(types) {
-        this._userTypes = types;
-        return this._initializeSchemas(CQLBuilder.createUDT(), types);
+    createUDTSchemas(types) {
+        this.setUDTSchemas(types);
+        return this._createSchemas(CQLBuilder.createUDT(), types);
     }
 
     /**
@@ -40,7 +40,7 @@ class CassandraStorage {
      * @returns {Promise<any[]>} All results of executed queries
      * @private
      */
-    _initializeSchemas(schemaQueryBuilder, schemaDescriptions) {
+    _createSchemas(schemaQueryBuilder, schemaDescriptions) {
         const execution = [];
 
         for (let name in schemaDescriptions) {
@@ -141,6 +141,26 @@ class CassandraStorage {
         });
 
         return queries.length ? this._cassandra.batch(queries, { prepare: true }) : Promise.resolve(null);
+    }
+
+    /**
+     * Sets table schemas for query operations
+     * @param {object} value
+     * @returns {CassandraStorage}
+     */
+    setTableSchemas(value) {
+        this._tableSchemas = value;
+        return this;
+    }
+
+    /**
+     * Sets UDT (user defined type) schemas for query operations
+     * @param {object} value
+     * @returns {CassandraStorage}
+     */
+    setUDTSchemas(value) {
+        this._userTypes = value;
+        return this;
     }
 }
 

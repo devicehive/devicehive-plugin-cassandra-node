@@ -28,7 +28,7 @@ describe('Cassandra Storage Provider', () => {
         const execSpy = MockCassandraClient.prototype.execute;
         const cassandra = new CassandraStorage(new MockCassandraClient());
 
-        cassandra.initializeUDTSchemas(userTypes);
+        cassandra.createUDTSchemas(userTypes);
 
         assert.equal(execSpy.callCount, 3);
     });
@@ -38,7 +38,7 @@ describe('Cassandra Storage Provider', () => {
         const execSpy = MockCassandraClient.prototype.execute;
         const cassandra = new CassandraStorage(new MockCassandraClient());
         
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
 
         assert.equal(execSpy.callCount, 3);
     });
@@ -48,7 +48,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands', 'another_commands');
 
         cassandra.insertCommand(dummyCommandData);
@@ -62,7 +62,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToNotifications('notifications', 'shared');
 
         cassandra.insertNotification({
@@ -80,7 +80,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommandUpdates('command_updates', 'shared');
 
         cassandra.insertCommandUpdate(dummyCommandData);
@@ -99,7 +99,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands');
 
         cassandra.insertCommand(dummyCommandData);
@@ -115,7 +115,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands', 'another_command');
 
         cassandra.insertCommand({});
@@ -135,7 +135,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands');
 
         cassandra.insertCommand(dummyCommandData);
@@ -160,8 +160,8 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeUDTSchemas(userTypes);
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createUDTSchemas(userTypes);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands');
 
         cassandra.insertCommand({

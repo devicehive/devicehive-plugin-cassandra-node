@@ -16,10 +16,7 @@ class CassandraPluginService extends PluginService {
     afterStart() {
         super.afterStart();
 
-        this.initCassandra().then(cassandra => {
-            this.cassandra = cassandra;
-            console.log('Cassandra schemas created');
-        }).catch(this.onError);
+        this.cassandra = this.initCassandra();
     }
 
     handleCommand(command) {
@@ -46,9 +43,7 @@ class CassandraPluginService extends PluginService {
         cassandra.assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables);
         cassandra.assignTablesToNotifications(...cassandraTables.notificationTables);
 
-        return cassandra.initializeUDTSchemas(cassandraUDTs).then(() => {
-            return cassandra.initializeTableSchemas(cassandraTables.tables);
-        }).then(() => cassandra);
+        return cassandra.setUDTSchemas(cassandraUDTs).setTableSchemas(cassandraTables.tables);
     }
 }
 
