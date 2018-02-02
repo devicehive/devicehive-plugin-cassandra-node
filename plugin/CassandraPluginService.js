@@ -1,8 +1,8 @@
 const PluginService = require('./PluginService');
 
 const cassandraConfig = require(`./config`).cassandra;
-const cassandraTables = require('./cassandra-tables');
-const cassandraUDTs = require('./cassandra-user-types');
+const cassandraTables = require('../cassandraSchemas/cassandra-tables');
+const cassandraUDTs = require('../cassandraSchemas/cassandra-user-types');
 const CassandraStorage = require('../cassandra');
 
 /**
