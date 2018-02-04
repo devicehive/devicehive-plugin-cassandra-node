@@ -22,7 +22,7 @@ describe('Plugin', () => {
         cassandra.insertNotification = sinon.stub().returns(cassandra);
         cassandra.checkAllSchemasExist = sinon.stub().returns(cassandra).callsFake(cb => cb(true));
 
-        cassandraStorage.connect = sinon.stub().returns(cassandra);
+        cassandraStorage.connect = sinon.stub().returns(Promise.resolve(cassandra));
 
         cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT = 10;
         cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL = 0;

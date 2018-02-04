@@ -9,13 +9,13 @@ const defaultConfig = require('./config');
 module.exports = {
     /**
      * Creates client connection to Cassandra
-     * @returns {CassandraStorage}
+     * @returns {Promise<CassandraStorage>}
      */
     connect(userConfig = {}) {
         const config = createConfig(userConfig);
         const cassandraClient = new cassandraDriver.Client(config.connection);
 
-        return new CassandraStorage(cassandraClient);
+        return cassandraClient.connect().then(() => new CassandraStorage(cassandraClient));
     }
 };
 

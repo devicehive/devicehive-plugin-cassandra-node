@@ -18,6 +18,7 @@ class CassandraPluginService extends PluginService {
 
         this.initCassandra().then(cassandra => {
             this.cassandra = cassandra;
+            console.log('Cassandra connection initialized');
         }).catch(err => {
             this.onError(err);
             process.exit(1);
@@ -42,17 +43,18 @@ class CassandraPluginService extends PluginService {
     }
 
     initCassandra() {
-        const cassandra = CassandraStorage.connect(cassandraConfig);
+        return CassandraStorage.connect(cassandraConfig).then(cassandra => {
+            cassandra.setUDTSchemas(cassandraUDTs)
+                .setTableSchemas(cassandraTables.tables)
+                .assignTablesToCommands(...cassandraTables.commandTables)
+                .assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables)
+                .assignTablesToNotifications(...cassandraTables.notificationTables);
 
-        cassandra.setUDTSchemas(cassandraUDTs)
-            .setTableSchemas(cassandraTables.tables)
-            .assignTablesToCommands(...cassandraTables.commandTables)
-            .assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables)
-            .assignTablesToNotifications(...cassandraTables.notificationTables);
-
-        return this.ensureSchemasExist(cassandra);
+            return this.ensureSchemasExist(cassandra);
+        });
     }
 
+    // @TODO Split to smaller methods
     ensureSchemasExist(cassandra) {
         return new Promise((resolve, reject) => {
             let checkNumber = 0;

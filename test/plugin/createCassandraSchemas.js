@@ -10,7 +10,7 @@ describe('Cassandra schemas creation', () => {
             createUDTSchemas: sinon.stub().returns(Promise.resolve({}))
         };
 
-        cassandraStorage.connect = sinon.stub().returns(cassandra);
+        cassandraStorage.connect = sinon.stub().returns(Promise.resolve(cassandra));
 
         const exit = process.exit;
         process.exit = sinon.spy();
