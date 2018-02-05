@@ -56,6 +56,7 @@ class CassandraPluginService extends PluginService {
 
     ensureSchemasExist(cassandra) {
         return new Promise((resolve, reject) => {
+            const interval = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL) || 0;
             const schemaCheck = this._createSchemaChecking(cassandra);
             const checking = setInterval(() => {
                 schemaCheck().then(ok => {
@@ -67,13 +68,13 @@ class CassandraPluginService extends PluginService {
                     clearInterval(checking);
                     reject(err);
                 });
-            }, +cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL);
+            }, interval);
         });
     }
 
     _createSchemaChecking(cassandra) {
         let checkNumber = 0;
-        const checksThreshold = +cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT;
+        const checksThreshold = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT) || 0;
         return () => {
             return new Promise((resolve, reject) => {
                 if (checkNumber >= checksThreshold) {
