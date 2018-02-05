@@ -23,6 +23,7 @@
     },
     "scripts": {
         "start": "node ./plugin/index.js",
+        "schema": "node ./plugin/createCassandraSchemas.js",
         "test": "./node_modules/.bin/mocha --recursive"
     },
     "author": "Alexei Torunov",
