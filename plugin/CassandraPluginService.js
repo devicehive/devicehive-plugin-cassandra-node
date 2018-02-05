@@ -1,8 +1,8 @@
 const PluginService = require('./PluginService');
 
 const cassandraConfig = require(`./config`).cassandra;
-const cassandraTables = require('./cassandra-tables');
-const cassandraUDTs = require('./cassandra-user-types');
+const cassandraTables = require('../cassandraSchemas/cassandra-tables');
+const cassandraUDTs = require('../cassandraSchemas/cassandra-user-types');
 const CassandraStorage = require('../cassandra');
 
 /**
@@ -18,8 +18,11 @@ class CassandraPluginService extends PluginService {
 
         this.initCassandra().then(cassandra => {
             this.cassandra = cassandra;
-            console.log('Cassandra schemas created');
-        }).catch(this.onError);
+            console.log('Cassandra connection initialized');
+        }).catch(err => {
+            this.onError(err);
+            process.exit(1);
+        });
     }
 
     handleCommand(command) {
@@ -40,15 +43,49 @@ class CassandraPluginService extends PluginService {
     }
 
     initCassandra() {
-        const cassandra = CassandraStorage.connect(cassandraConfig);
+        return CassandraStorage.connect(cassandraConfig).then(cassandra => {
+            cassandra.setUDTSchemas(cassandraUDTs)
+                .setTableSchemas(cassandraTables.tables)
+                .assignTablesToCommands(...cassandraTables.commandTables)
+                .assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables)
+                .assignTablesToNotifications(...cassandraTables.notificationTables);
 
-        cassandra.assignTablesToCommands(...cassandraTables.commandTables);
-        cassandra.assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables);
-        cassandra.assignTablesToNotifications(...cassandraTables.notificationTables);
+            return this.ensureSchemasExist(cassandra);
+        });
+    }
 
-        return cassandra.initializeUDTSchemas(cassandraUDTs).then(() => {
-            return cassandra.initializeTableSchemas(cassandraTables.tables);
-        }).then(() => cassandra);
+    ensureSchemasExist(cassandra) {
+        return new Promise((resolve, reject) => {
+            const interval = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL) || 0;
+            const schemaCheck = this._createSchemaChecking(cassandra);
+            const checking = setInterval(() => {
+                schemaCheck().then(ok => {
+                    if (ok) {
+                        clearInterval(checking);
+                        resolve(cassandra);
+                    }
+                }).catch(err => {
+                    clearInterval(checking);
+                    reject(err);
+                });
+            }, interval);
+        });
+    }
+
+    _createSchemaChecking(cassandra) {
+        let checkNumber = 0;
+        const checksThreshold = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT) || 0;
+        return () => {
+            return new Promise((resolve, reject) => {
+                if (checkNumber >= checksThreshold) {
+                    reject(new Error('CASSANDRA SCHEMAS HAVE NOT BEEN CREATED'));
+                    return;
+                }
+
+                checkNumber++;
+                cassandra.checkSchemasExistence(resolve);
+            });
+        };
     }
 }
 

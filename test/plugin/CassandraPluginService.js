@@ -3,34 +3,56 @@ const sinon = require('sinon');
 
 const MessageBuilder = require('./dataBuilders/MessageBuilder');
 
+const cassandraConfig = require('../../plugin/config').cassandra;
 const cassandraStorage = require('../../cassandra');
 const CassandraPluginService = require('../../plugin/CassandraPluginService');
 
 describe('Plugin', () => {
     let cassandra;
     beforeEach(() => {
-        cassandra = {
-            initializeTableSchemas: sinon.stub().returns(Promise.resolve({})),
-            initializeUDTSchemas: sinon.stub().returns(Promise.resolve({})),
-            assignTablesToCommands: sinon.stub().returns(cassandra),
-            assignTablesToNotifications: sinon.stub().returns(cassandra),
-            assignTablesToCommandUpdates: sinon.stub().returns(cassandra),
-            insertCommand: sinon.stub().returns(cassandra),
-            insertCommandUpdate: sinon.stub().returns(cassandra),
-            insertNotification: sinon.stub().returns(cassandra)
-        };
+        cassandra = {};
 
-        cassandraStorage.connect = sinon.stub().returns(cassandra);
+        cassandra.setTableSchemas = sinon.stub().returns(cassandra);
+        cassandra.setUDTSchemas = sinon.stub().returns(cassandra);
+        cassandra.assignTablesToCommands = sinon.stub().returns(cassandra);
+        cassandra.assignTablesToNotifications = sinon.stub().returns(cassandra);
+        cassandra.assignTablesToCommandUpdates = sinon.stub().returns(cassandra);
+        cassandra.insertCommand = sinon.stub().returns(cassandra);
+        cassandra.insertCommandUpdate = sinon.stub().returns(cassandra);
+        cassandra.insertNotification = sinon.stub().returns(cassandra);
+        cassandra.checkSchemasExistence = sinon.stub().returns(cassandra).callsFake(cb => cb(true));
+
+        cassandraStorage.connect = sinon.stub().returns(Promise.resolve(cassandra));
+
+        cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT = 10;
+        cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL = 0;
     });
 
-    it('Should initialize Cassandra user defined types and tables after start', done => {
+    it('Should fail application if Cassandra schemas have not been created after N checks with time intervals', done => {
+        const exit = process.exit;
+        process.exit = sinon.spy();
+        cassandra.checkSchemasExistence.callsFake(cb => cb(false));
+
+        const plugin = new CassandraPluginService();
+        plugin.afterStart();
+
+        asyncAssertion(() => {
+            assert.equal(cassandra.checkSchemasExistence.callCount, 10);
+            assert(process.exit.calledOnce);
+
+            process.exit = exit;
+            done();
+        });
+    });
+
+    it('Should set schemas of Cassandra user defined types and tables after start', done => {
         const plugin = new CassandraPluginService();
 
         plugin.afterStart();
 
         asyncAssertion(() => {
-            assert(cassandra.initializeUDTSchemas.calledOnce);
-            assert(cassandra.initializeTableSchemas.calledOnce);
+            assert(cassandra.setTableSchemas.calledOnce);
+            assert(cassandra.setUDTSchemas.calledOnce);
             done();
         });
     });
@@ -132,5 +154,5 @@ describe('Plugin', () => {
 });
 
 function asyncAssertion(callback) {
-    setTimeout(callback, 0);
+    setTimeout(callback, 100);
 }

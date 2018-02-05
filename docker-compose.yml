@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  plugin:
+    build:
+      context: .
+      dockerfile: Dockerfile.plugin
+    env_file:
+      - .env
+    depends_on:
+      - schema
+  schema:
+    build:
+      context: .
+      dockerfile: Dockerfile.schema
+    env_file:
+      - .env

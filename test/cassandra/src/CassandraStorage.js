@@ -11,6 +11,11 @@ describe('Cassandra Storage Provider', () => {
     beforeEach(() => {
         MockCassandraClient.prototype.execute = sinon.spy();
         MockCassandraClient.prototype.batch = sinon.spy();
+        MockCassandraClient.prototype.metadata = {
+            getTable: sinon.stub().returns(Promise.resolve({})),
+            getUdt: sinon.stub().returns(Promise.resolve({}))
+        };
+        MockCassandraClient.prototype.keyspace = 'test_keyspace';
 
         dummyCommandData = {
             deviceId: 'some-device',
@@ -28,7 +33,7 @@ describe('Cassandra Storage Provider', () => {
         const execSpy = MockCassandraClient.prototype.execute;
         const cassandra = new CassandraStorage(new MockCassandraClient());
 
-        cassandra.initializeUDTSchemas(userTypes);
+        cassandra.createUDTSchemas(userTypes);
 
         assert.equal(execSpy.callCount, 3);
     });
@@ -38,7 +43,7 @@ describe('Cassandra Storage Provider', () => {
         const execSpy = MockCassandraClient.prototype.execute;
         const cassandra = new CassandraStorage(new MockCassandraClient());
         
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
 
         assert.equal(execSpy.callCount, 3);
     });
@@ -48,7 +53,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands', 'another_commands');
 
         cassandra.insertCommand(dummyCommandData);
@@ -62,7 +67,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToNotifications('notifications', 'shared');
 
         cassandra.insertNotification({
@@ -80,7 +85,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommandUpdates('command_updates', 'shared');
 
         cassandra.insertCommandUpdate(dummyCommandData);
@@ -99,14 +104,14 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands');
 
         cassandra.insertCommand(dummyCommandData);
 
         const batchedQueries = batchSpy.firstCall.args[0];
         assert.equal(batchedQueries.length, 1);
-        assert.equal(batchedQueries[0].query, 'INSERT INTO commands (command, timestamp) VALUES (?, ?)');
+        assert.equal(batchedQueries[0].query, 'INSERT INTO test_keyspace.commands (command, timestamp) VALUES (?, ?)');
         assert.deepEqual(batchedQueries[0].params, [ 'command-name', 1516266743223 ]);
     });
 
@@ -115,7 +120,7 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands', 'another_command');
 
         cassandra.insertCommand({});
@@ -135,13 +140,13 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands');
 
         cassandra.insertCommand(dummyCommandData);
 
         const batchedQueries = batchSpy.firstCall.args[0];
-        assert.equal(batchedQueries[0].query, 'INSERT INTO commands (command, timestamp) VALUES (?, ?)');
+        assert.equal(batchedQueries[0].query, 'INSERT INTO test_keyspace.commands (command, timestamp) VALUES (?, ?)');
         assert.deepEqual(batchedQueries[0].params, [ 'command-name', 1516266743223 ]);
     });
 
@@ -160,8 +165,8 @@ describe('Cassandra Storage Provider', () => {
         const batchSpy = MockCassandraClient.prototype.batch;
 
         const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.initializeUDTSchemas(userTypes);
-        cassandra.initializeTableSchemas(tables);
+        cassandra.createUDTSchemas(userTypes);
+        cassandra.createTableSchemas(tables);
         cassandra.assignTablesToCommands('commands');
 
         cassandra.insertCommand({
@@ -174,7 +179,49 @@ describe('Cassandra Storage Provider', () => {
         });
 
         const batchedQueries = batchSpy.firstCall.args[0];
-        assert.equal(batchedQueries[0].query, 'INSERT INTO commands (command, params) VALUES (?, ?)');
+        assert.equal(batchedQueries[0].query, 'INSERT INTO test_keyspace.commands (command, params) VALUES (?, ?)');
         assert.deepEqual(batchedQueries[0].params, [ 'command-name', { prop1: 123, prop2: 'test value' } ]);
     });
+
+    it('Should check tables and UDT existence', () => {
+        const { getTable, getUdt } = MockCassandraClient.prototype.metadata;
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        cassandra.setTableSchemas({
+            table: {}
+        }).setUDTSchemas({
+            udt: {}
+        });
+
+        cassandra.checkSchemasExistence(() => {});
+
+        assert.ok(getTable.calledOnce);
+        assert.deepEqual(getTable.firstCall.args, [ 'test_keyspace', 'table' ]);
+        assert.ok(getUdt.calledOnce);
+        assert.deepEqual(getUdt.firstCall.args, [ 'test_keyspace', 'udt' ]);
+    });
+
+    it('Should invoke callback with false if some schemas do not exist', done => {
+        const { getUdt } = MockCassandraClient.prototype.metadata;
+        getUdt.returns(Promise.resolve(null));
+
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        cassandra.setTableSchemas({
+            table: {}
+        }).setUDTSchemas({
+            udt: {}
+        });
+
+        const callback = sinon.stub();
+        cassandra.checkSchemasExistence(callback);
+
+        asyncAssertion(() => {
+            assert.ok(callback.calledOnce);
+            assert.equal(callback.firstCall.args[0], false);
+            done();
+        });
+    });
 });
+
+function asyncAssertion(callback) {
+    setTimeout(callback, 0);
+}
