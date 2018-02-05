@@ -54,26 +54,37 @@ class CassandraPluginService extends PluginService {
         });
     }
 
-    // @TODO Split to smaller methods
     ensureSchemasExist(cassandra) {
         return new Promise((resolve, reject) => {
-            let checkNumber = 0;
+            const schemaCheck = this._createSchemaChecking(cassandra);
             const checking = setInterval(() => {
-                if (checkNumber >= +cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT) {
+                schemaCheck().then(ok => {
+                    if (ok) {
+                        clearInterval(checking);
+                        resolve(cassandra);
+                    }
+                }).catch(err => {
                     clearInterval(checking);
+                    reject(err);
+                });
+            }, +cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL);
+        });
+    }
+
+    _createSchemaChecking(cassandra) {
+        let checkNumber = 0;
+        const checksThreshold = +cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT;
+        return () => {
+            return new Promise((resolve, reject) => {
+                if (checkNumber >= checksThreshold) {
                     reject(new Error('CASSANDRA SCHEMAS HAVE NOT BEEN CREATED'));
                     return;
                 }
 
                 checkNumber++;
-                cassandra.checkAllSchemasExist(exist => {
-                    if (exist) {
-                        resolve(cassandra);
-                        clearInterval(checking);
-                    }
-                });
-            }, +cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL);
-        });
+                cassandra.checkAllSchemasExist(resolve);
+            });
+        };
     }
 }
 
