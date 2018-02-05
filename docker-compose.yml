@@ -1,18 +1,6 @@
 version: '3'
 
 services:
-
-  schema:
-    build:
-      context: .
-      dockerfile: Dockerfile.schema
-    environment:
-      ENVSEPARATOR: _
-      CASSANDRA_CONNECTION_KEYSPACE: testks
-      CASSANDRA_CONNECTION_USERNAME: cassandra
-      CASSANDRA_CONNECTION_PASSWORD: cassandra
-      CASSANDRA_CONNECTION_CONTACT_POINTS: 192.168.152.174
-
   plugin:
     build:
       context: .
@@ -24,6 +12,7 @@ services:
       PLUGIN_PLUGIN_TOPIC: plugin_topic_a2bb68c2-b288-40dd-aa08-41639c4cf308
       PLUGIN_DEVICE_HIVE_PLUGIN_WS_ENDPOINT: ws://192.168.152.174:3001
       PLUGIN_DEVICE_HIVE_AUTH_SERVICE_API_URL: http://192.168.152.174:8090/dh/rest
+      PLUGIN_SUBSCRIPTION_GROUP: cassandra_plugin
       CASSANDRA_CONNECTION_KEYSPACE: testks
       CASSANDRA_CONNECTION_USERNAME: cassandra
       CASSANDRA_CONNECTION_PASSWORD: cassandra
@@ -32,3 +21,13 @@ services:
       CASSANDRA_CONNECTION_CONTACT_POINTS: 192.168.152.174
     depends_on:
       - schema
+  schema:
+    build:
+      context: .
+      dockerfile: Dockerfile.schema
+    environment:
+      ENVSEPARATOR: _
+      CASSANDRA_CONNECTION_KEYSPACE: testks
+      CASSANDRA_CONNECTION_USERNAME: cassandra
+      CASSANDRA_CONNECTION_PASSWORD: cassandra
+      CASSANDRA_CONNECTION_CONTACT_POINTS: 192.168.152.174
