@@ -192,7 +192,7 @@ describe('Cassandra Storage Provider', () => {
             udt: {}
         });
 
-        cassandra.checkAllSchemasExist(() => {});
+        cassandra.checkSchemasExistence(() => {});
 
         assert.ok(getTable.calledOnce);
         assert.deepEqual(getTable.firstCall.args, [ 'test_keyspace', 'table' ]);
@@ -212,7 +212,7 @@ describe('Cassandra Storage Provider', () => {
         });
 
         const callback = sinon.stub();
-        cassandra.checkAllSchemasExist(callback);
+        cassandra.checkSchemasExistence(callback);
 
         asyncAssertion(() => {
             assert.ok(callback.calledOnce);

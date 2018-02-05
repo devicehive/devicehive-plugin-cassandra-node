@@ -82,7 +82,7 @@ class CassandraPluginService extends PluginService {
                 }
 
                 checkNumber++;
-                cassandra.checkAllSchemasExist(resolve);
+                cassandra.checkSchemasExistence(resolve);
             });
         };
     }

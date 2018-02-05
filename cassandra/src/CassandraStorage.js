@@ -163,22 +163,14 @@ class CassandraStorage {
         return this;
     }
 
-    checkAllSchemasExist(callback) {
-        const tableSchemasCheck = [];
-        const udtSchemasCheck = [];
-        const ks = this._cassandra.keyspace;
-
-        for (let tableName in this._tableSchemas) {
-            if (this._tableSchemas.hasOwnProperty(tableName)) {
-                tableSchemasCheck.push(this._cassandra.metadata.getTable(ks, tableName));
-            }
-        }
-
-        for (let udtName in this._userTypes) {
-            if (this._userTypes.hasOwnProperty(udtName)) {
-                udtSchemasCheck.push(this._cassandra.metadata.getUdt(ks, udtName));
-            }
-        }
+    /**
+     * Executes given callback with 'true' if all set schemas exist and 'false' in other case
+     * @param {function} callback
+     * @returns {CassandraStorage}
+     */
+    checkSchemasExistence(callback) {
+        const tableSchemasCheck = this._requestMetadata(this._tableSchemas);
+        const udtSchemasCheck = this._requestMetadata(this._userTypes);
 
         Promise.all(tableSchemasCheck.concat(udtSchemasCheck)).then(results => {
             const allSchemasExist = results.every(r => r);
@@ -186,6 +178,37 @@ class CassandraStorage {
         });
 
         return this;
+    }
+
+    /**
+     * Creates array of metadata requests
+     * @param {object} schemas this._tableSchemas or this._userTypes object
+     * @returns {Array}
+     * @private
+     */
+    _requestMetadata(schemas) {
+        if (!schemas) {
+            return [];
+        }
+
+        let method = '';
+        if (schemas === this._tableSchemas) {
+            method = 'getTable';
+        } else if (schemas === this._userTypes) {
+            method = 'getUdt';
+        } else {
+            return [];
+        }
+
+        const requests = [];
+        const ks = this._cassandra.keyspace;
+        for (const name in schemas) {
+            if (schemas.hasOwnProperty(name)) {
+                requests.push(this._cassandra.metadata[method](ks, name));
+            }
+        }
+
+        return requests;
     }
 }
 
