@@ -27,7 +27,7 @@ function connect() {
 function exitIfInvalid(schemas) {
     const errors = SchemaCreator.getSchemasErrors(schemas);
 
-    errors.forEach(err => console.error(err));
+    errors.forEach(err => console.error(err.toString()));
 
     if (errors.length) {
         process.exit(1);
