@@ -6,7 +6,7 @@ const SchemaCreator = require('./SchemaCreator');
 
 exitIfInvalid(cassandraTables.tables);
 
-connect().then(() => {
+createSchema().then(() => {
     console.log('Cassandra schemas have been created');
     process.exit(0);
 }).catch(err => {
@@ -15,7 +15,7 @@ connect().then(() => {
     process.exit(1);
 });
 
-function connect() {
+function createSchema() {
     return CassandraStorage.connect(cassandraConfig).then(cassandra => {
         return new SchemaCreator(cassandra).create({
             udt: cassandraUDTs,
