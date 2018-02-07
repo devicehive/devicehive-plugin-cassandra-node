@@ -9,9 +9,13 @@ services:
       - .env
     depends_on:
       - schema
+    volumes:
+      - .\cassandraSchemas\:/usr/src/app/cassandraSchemas
   schema:
     build:
       context: .
       dockerfile: Dockerfile.schema
     env_file:
       - .env
+    volumes:
+      - .\cassandraSchemas\:/usr/src/app/cassandraSchemas

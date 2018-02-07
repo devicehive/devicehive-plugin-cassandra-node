@@ -94,24 +94,6 @@ describe('Cassandra Storage Provider', () => {
         assert.equal(batchedQueries.length, 2);
     });
 
-    it('Should execute update query only for tables defined as notification tables', () => {
-        const tables = new TablesBuilder().withTables('commands', 'more_commands', 'notifications', 'shared').build();
-        const batchSpy = MockCassandraClient.prototype.batch;
-
-        const cassandra = new CassandraStorage(new MockCassandraClient());
-        cassandra.createTableSchemas(tables);
-        cassandra.assignTablesToNotifications('notifications', 'shared');
-
-        cassandra.updateNotification({
-            deviceId: 'some-device',
-            notification: 'notif-name',
-            timestamp: 1516266743223
-        });
-
-        const batchedQueries = batchSpy.firstCall.args[0];
-        assert.equal(batchedQueries.length, 2);
-    });
-
     it('Should execute insert query only for tables defined as command updates tables', () => {
         const tables = new TablesBuilder().withTables('commands', 'command_updates', 'notifications', 'shared').build();
         const batchSpy = MockCassandraClient.prototype.batch;

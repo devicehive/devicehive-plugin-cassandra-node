@@ -127,15 +127,6 @@ class CassandraStorage {
     }
 
     /**
-     * Updates notification in each table which is assigned to command group
-     * @param notificationData
-     * @returns {Promise<any>}
-     */
-    updateNotification(notificationData) {
-        return this._updateTableGroup(CassandraStorage.NOTIFICATION_GROUP, notificationData);
-    }
-
-    /**
      * Inserts data into specified group of tables
      * @param {string} groupName
      * @param {Object} data
