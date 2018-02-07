@@ -97,4 +97,52 @@ describe('JSON Schema', () => {
         assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text'), null);
         assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', null), null);
     });
+
+    it('Should return filtered object consisted of primary and clustered keys only', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            clustered: 'int',
+            col1: 'text',
+
+            __primaryKey__: [ 'id' ],
+            __clusteredKey__: [ 'clustered' ]
+        });
+        const data = {
+            id: 123,
+            col1: 'test',
+            clustered: 111
+        };
+
+        const keyValues = schema.extractKeys(data);
+
+        assert.deepEqual(keyValues, {
+            id: 123,
+            clustered: 111
+        });
+    });
+
+    it('Should return filtered object consisted of not key columns only', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            clustered: 'int',
+            col1: 'text',
+            col2: 'text',
+
+            __primaryKey__: [ 'id' ],
+            __clusteredKey__: [ 'clustered' ]
+        });
+        const data = {
+            id: 123,
+            col1: 'test',
+            col2: 'test2',
+            clustered: 111
+        };
+
+        const notKeyValues = schema.extractNotKeys(data);
+
+        assert.deepEqual(notKeyValues, {
+            col1: 'test',
+            col2: 'test2'
+        });
+    });
 });

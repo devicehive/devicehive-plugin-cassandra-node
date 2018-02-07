@@ -14,6 +14,16 @@ class CQLBuilder {
     }
 
     /**
+     * Creates update type of query
+     * @param tableName
+     * @param [keyspace = '']
+     * @returns {QueryBuilder}
+     */
+    static update(tableName, keyspace) {
+        return new QueryBuilder().update(tableName, keyspace);
+    }
+
+    /**
      * Creates table creation type of query
      * @param tableName
      * @returns {TableSchemaBuilder}

@@ -1,4 +1,4 @@
-const { Insert } = require('cassandra-cql-builder');
+const { Insert, Update } = require('cassandra-cql-builder');
 const JSONSchema = require('./JSONSchema');
 
 class QueryBuilder {
@@ -9,7 +9,7 @@ class QueryBuilder {
     }
 
     /**
-     * Specifies which table data will be inserted into
+     * Specifies insert type of query and which table data will be inserted into
      * @param tableName
      * @param [keyspace = '']
      * @returns {QueryBuilder}
@@ -20,12 +20,37 @@ class QueryBuilder {
     }
 
     /**
+     * Specifies update type of query and table to update
+     * @param tableName
+     * @param keyspace
+     * @returns {QueryBuilder}
+     */
+    update(tableName, keyspace = '') {
+        this._query = Update().table(tableName, keyspace);
+        return this;
+    }
+
+    /**
+     * Sets query condition
+     * @param key Must be specified with operator, i.e. key >= ?
+     * @param value
+     * @returns {QueryBuilder}
+     */
+    where(key, value) {
+        if (this._query.where) {
+            this._query.where(key, value);
+        }
+
+        return this;
+    }
+
+    /**
      * Specifies query parameters
      * @param data
      * @returns {QueryBuilder}
      */
     queryParams(data) {
-        this._queryParams = data;
+        this._queryParams = { ...data };
         return this;
     }
 
@@ -59,8 +84,27 @@ class QueryBuilder {
      * @returns {Array} cql.params
      */
     build() {
+        this._constructWhereCondition();
         this._fillQueryWithValues();
         return this._query.build();
+    }
+
+    /**
+     * Sets WHERE condition for query, assigns only not key values to _queryParams after that
+     * @private
+     */
+    _constructWhereCondition() {
+        if (this._query.command.name !== 'UPDATE' || !this._schema || !this._queryParams) {
+            return;
+        }
+
+        const keyValues = this._schema.extractKeys(this._queryParams);
+
+        for (let k in keyValues) {
+            this.where(`${k} = ?`, keyValues[k]);
+        }
+
+        this._queryParams = this._schema.extractNotKeys(this._queryParams);
     }
 
     /**
@@ -68,7 +112,7 @@ class QueryBuilder {
      * @private
      */
     _fillQueryWithValues() {
-        if (this._query.command.name !== 'INSERT') {
+        if (this._query.command.name !== 'INSERT' && this._query.command.name !== 'UPDATE') {
             return;
         }
 
@@ -79,11 +123,21 @@ class QueryBuilder {
 
         for (let key in queryParams) {
             if (queryParams.hasOwnProperty(key)) {
-                this._query.value(key, queryParams[key]);
+                this._value(key, queryParams[key]);
             }
         }
 
         this._queryParams = {};
+    }
+
+    _value(key, val) {
+        if (this._query.command.name === 'INSERT') {
+            this._query.value(key, val);
+        } else if (this._query.command.name === 'UPDATE') {
+            this._query.set(key, val);
+        }
+
+        return this;
     }
 }
 

@@ -68,4 +68,40 @@ describe('Query Builder', () => {
 
         assert.deepEqual(cql.params, [ 'test' ]);
     });
+
+    it('Should build update query with IF EXISTS', () => {
+        const builder = new QueryBuilder().update('table').where('key1=?', 'test').where('key2=?', '2test2');
+        builder.queryParams({ val: 'set value', val2: 'set value 2' });
+
+        const cql = builder.build();
+
+        assert.equal(cql.query, 'UPDATE table SET val = ?, val2 = ? WHERE key1=? AND key2=? IF EXISTS');
+        assert.deepEqual(cql.params, [ 'set value', 'set value 2', 'test', '2test2' ]);
+    });
+
+    it('Should construct WHERE condition based on JSON schema for UPDATE query', () => {
+        const schema = {
+            col1: 'text',
+            col2: 'int',
+            id: 'int',
+            id2: 'int',
+            clustered: 'int',
+            __primaryKey__: [ 'id', 'id2' ],
+            __clusteredKey__: [ 'clustered' ]
+        };
+        const data = {
+            col1: 'test',
+            col2: 111,
+            id: 1,
+            id2: 2,
+            clustered: 3
+        };
+
+        const builder = new QueryBuilder().update('table').withJSONSchema(schema).queryParams(data);
+
+        const cql = builder.build();
+
+        assert.equal(cql.query, 'UPDATE table SET col1 = ?, col2 = ? WHERE id = ? AND id2 = ? AND clustered = ? IF EXISTS')
+        assert.deepEqual(cql.params, [ 'test', 111, 1, 2, 3 ]);
+    });
 });

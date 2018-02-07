@@ -143,6 +143,25 @@ class CassandraStorage {
         return queries.length ? this._cassandra.batch(queries, { prepare: true }) : Promise.resolve(null);
     }
 
+    updateCommand(commandData) {
+        const tablesToInsert = this._tableGroups.get(CassandraStorage.COMMAND_GROUP) || [];
+        const queries = [];
+
+        tablesToInsert.forEach(table => {
+            const schema = this._tableSchemas[table];
+            if (!schema) {
+                return;
+            }
+
+            const q = CQLBuilder.update(table, this._cassandra.keyspace).queryParams(commandData);
+            q.withJSONSchema(schema).withJSONCustomTypes(this._userTypes);
+
+            queries.push(q.build());
+        });
+
+        return queries.length ? this._cassandra.batch(queries, { prepare: true }) : Promise.resolve(null);
+    }
+
     /**
      * Sets table schemas for query operations
      * @param {object} value
