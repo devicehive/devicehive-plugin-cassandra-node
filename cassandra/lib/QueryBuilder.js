@@ -6,6 +6,7 @@ class QueryBuilder {
         this._query = null;
         this._schema = null;
         this._queryParams = null;
+        this._customTypes = null;
     }
 
     /**
@@ -15,7 +16,10 @@ class QueryBuilder {
      * @returns {QueryBuilder}
      */
     insertInto(tableName, keyspace = '') {
-        this._query = Insert().table(tableName, keyspace);
+        this._query = Insert();
+
+        this.table(tableName, keyspace);
+
         return this;
     }
 
@@ -26,7 +30,18 @@ class QueryBuilder {
      * @returns {QueryBuilder}
      */
     update(tableName, keyspace = '') {
-        this._query = Update().table(tableName, keyspace);
+        this._query = Update();
+
+        this.table(tableName, keyspace);
+
+        return this;
+    }
+
+    table(tableName, keyspace = '') {
+        if (this._query && tableName) {
+            this._query.table(tableName, keyspace);
+        }
+
         return this;
     }
 
@@ -61,6 +76,10 @@ class QueryBuilder {
      */
     withJSONSchema(schema) {
         this._schema = new JSONSchema(schema);
+        if (this._customTypes) {
+            this._schema.fillWithTypes(this._customTypes);
+        }
+
         return this;
     }
 
@@ -69,9 +88,14 @@ class QueryBuilder {
      * @param types
      * @returns {QueryBuilder}
      */
-    withJSONCustomTypes(types = null) {
+    withJSONCustomTypes(types) {
+        if (!types) {
+            return this;
+        }
+
+        this._customTypes = types;
         if (this._schema) {
-            this._schema.fillWithTypes(types);
+            this._schema.fillWithTypes(this._customTypes);
         }
 
         return this;
