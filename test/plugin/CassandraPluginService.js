@@ -22,10 +22,14 @@ describe('Plugin', () => {
         cassandra.insertNotification = sinon.stub().returns(cassandra);
         cassandra.checkSchemasExistence = sinon.stub().returns(cassandra).callsFake(cb => cb(true));
 
-        cassandraStorage.connect = sinon.stub().returns(Promise.resolve(cassandra));
+        sinon.stub(cassandraStorage, 'connect').returns(Promise.resolve(cassandra));
 
         cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT = 10;
         cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL = 0;
+    });
+
+    afterEach(() => {
+        cassandraStorage.connect.restore();
     });
 
     it('Should fail application if Cassandra schemas have not been created after N checks with time intervals', done => {
