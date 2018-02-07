@@ -26,21 +26,22 @@ class SchemaCreator {
     }
 
     static getSchemaError(tableSchema, tableName) {
-        return SchemaCreator._validateParametersField(tableSchema, tableName);
+        const paramsValid = SchemaCreator._validateParametersField(tableSchema);
+        return paramsValid ? null : SchemaError.parametersError(tableName);
     }
 
-    static _validateParametersField(tableSchema, tableName) {
+    static _validateParametersField(tableSchema) {
         if (tableSchema.parameters) {
             const isNotString = SchemaCreator._parametersIsNotString(tableSchema.parameters);
             const isNotMap = SchemaCreator._parametersIsNotMap(tableSchema.parameters);
             const isNotUDT = SchemaCreator._parametersIsNotUDT(tableSchema.parameters);
 
             if (isNotString && isNotMap && isNotUDT) {
-                return SchemaError.parametersError(tableName);
+                return false;
             }
         }
 
-        return null;
+        return true;
     }
 
     static _parametersIsNotString(type) {
