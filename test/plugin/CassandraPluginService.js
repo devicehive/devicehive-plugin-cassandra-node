@@ -33,19 +33,19 @@ describe('Plugin', () => {
         cassandraStorage.connect.restore();
     });
 
-    it('Should fail application if Cassandra schemas have not been created after N checks with time intervals', done => {
-        const exit = process.exit;
-        process.exit = sinon.spy();
-        cassandra.checkSchemasExistence.callsFake(cb => cb(false));
-
+    it('Should fail application if Cassandra initialization failed', done => {
         const plugin = new CassandraPluginService();
+
+        sinon.stub(process, 'exit');
+        sinon.stub(plugin, 'initCassandra').returns(Promise.reject('error'));
+
         plugin.afterStart();
 
         asyncAssertion(() => {
-            assert.equal(cassandra.checkSchemasExistence.callCount, 10);
             assert(process.exit.calledOnce);
 
-            process.exit = exit;
+            plugin.initCassandra.restore();
+            process.exit.restore();
             done();
         });
     });
