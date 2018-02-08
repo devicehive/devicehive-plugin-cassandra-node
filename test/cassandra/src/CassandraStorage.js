@@ -234,6 +234,131 @@ describe('Cassandra Storage Provider', () => {
             done();
         });
     });
+
+    it('Should emit "tableExists" event if table already exists', done => {
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve({
+            columnsByName: {
+                col1: {
+                    name: 'col1',
+                    type: {
+                        code: 9,
+                        info: null,
+                        options: { frozen: false }
+                    }
+                }
+            }
+        }));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int'
+            }
+        };
+
+        const eventEmitter = cassandra.compareTableSchemas(schemas);
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert(eventEmitter.emit.calledOnce);
+
+            const [ event, tableName ] = eventEmitter.emit.firstCall.args;
+            assert.equal(event, 'tableExists');
+            assert.equal(tableName, 'testTable');
+            done();
+        });
+    });
+
+    it('Should emit "columnTypesMismatch" event if table contains same columns as schema but different types', done => {
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve({
+            columnsByName: {
+                col1: {
+                    name: 'col1',
+                    type: {
+                        code: 9,
+                        info: null,
+                        options: { frozen: false }
+                    }
+                },
+                col2: {
+                    name: 'col2',
+                    type: {
+                        code: 10,
+                        info: null,
+                        options: { frozen: false }
+                    }
+                }
+            }
+        }));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                col2: 'int'
+            }
+        };
+
+        const eventEmitter = cassandra.compareTableSchemas(schemas);
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert(eventEmitter.emit.calledTwice);
+
+            const [ event, tableName, colName, realType, schemaType ] = eventEmitter.emit.secondCall.args;
+            assert.equal(event, 'columnTypesMismatch');
+            assert.equal(tableName, 'testTable');
+            assert.equal(colName, 'col2');
+            assert.equal(realType, 'text');
+            assert.equal(schemaType, 'int');
+
+            done();
+        });
+    });
+
+    it('Should emit "columnsMismatch" event if schema has columns which real table does not have', done => {
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve({
+            columnsByName: {
+                col1: {
+                    name: 'col1',
+                    type: {
+                        code: 9,
+                        info: null,
+                        options: { frozen: false }
+                    }
+                },
+                col2: {
+                    name: 'col2',
+                    type: {
+                        code: 10,
+                        info: null,
+                        options: { frozen: false }
+                    }
+                }
+            }
+        }));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                col3: 'int'
+            }
+        };
+
+        const eventEmitter = cassandra.compareTableSchemas(schemas);
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert(eventEmitter.emit.calledTwice);
+
+            const [ event, tableName ] = eventEmitter.emit.secondCall.args;
+            assert.equal(event, 'columnsMismatch');
+            assert.equal(tableName, 'testTable');
+
+            done();
+        });
+    });
 });
 
 function asyncAssertion(callback) {
