@@ -118,6 +118,15 @@ class CassandraStorage {
     }
 
     /**
+     * Updates command in each table which is assigned to command group
+     * @param commandData
+     * @returns {Promise<any>}
+     */
+    updateCommand(commandData) {
+        return this._updateTableGroup(CassandraStorage.COMMAND_GROUP, commandData);
+    }
+
+    /**
      * Inserts data into specified group of tables
      * @param {string} groupName
      * @param {Object} data
@@ -125,6 +134,20 @@ class CassandraStorage {
      * @private
      */
     _insertIntoTableGroup(groupName, data) {
+        const queryBuilder = this._createQueryBuilderWithData(CQLBuilder.INSERT_QUERY, data);
+        return this._queryTableGroup(groupName, queryBuilder);
+    }
+
+    _updateTableGroup(groupName, data) {
+        const queryBuilder = this._createQueryBuilderWithData(CQLBuilder.UPDATE_QUERY, data);
+        return this._queryTableGroup(groupName, queryBuilder);
+    }
+
+    _createQueryBuilderWithData(type, data) {
+        return CQLBuilder.query(type).queryParams(data).withJSONCustomTypes(this._userTypes);
+    }
+
+    _queryTableGroup(groupName, queryBuilder) {
         const tablesToInsert = this._tableGroups.get(groupName) || [];
         const queries = [];
 
@@ -134,8 +157,7 @@ class CassandraStorage {
                 return;
             }
 
-            const q = CQLBuilder.insertInto(table, this._cassandra.keyspace).queryParams(data);
-            q.withJSONSchema(schema).withJSONCustomTypes(this._userTypes);
+            const q = queryBuilder.table(table, this._cassandra.keyspace).withJSONSchema(schema);
 
             queries.push(q.build());
         });

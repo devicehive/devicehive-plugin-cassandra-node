@@ -17,9 +17,10 @@ describe('Plugin', () => {
         cassandra.assignTablesToCommands = sinon.stub().returns(cassandra);
         cassandra.assignTablesToNotifications = sinon.stub().returns(cassandra);
         cassandra.assignTablesToCommandUpdates = sinon.stub().returns(cassandra);
-        cassandra.insertCommand = sinon.stub().returns(cassandra);
-        cassandra.insertCommandUpdate = sinon.stub().returns(cassandra);
-        cassandra.insertNotification = sinon.stub().returns(cassandra);
+        cassandra.insertCommand = sinon.stub().returns(Promise.resolve({}));
+        cassandra.updateCommand = sinon.stub().returns(Promise.resolve({}));
+        cassandra.insertCommandUpdate = sinon.stub().returns(Promise.resolve({}));
+        cassandra.insertNotification = sinon.stub().returns(Promise.resolve({}));
         cassandra.checkSchemasExistence = sinon.stub().returns(cassandra).callsFake(cb => cb(true));
 
         sinon.stub(cassandraStorage, 'connect').returns(Promise.resolve(cassandra));
@@ -32,19 +33,19 @@ describe('Plugin', () => {
         cassandraStorage.connect.restore();
     });
 
-    it('Should fail application if Cassandra schemas have not been created after N checks with time intervals', done => {
-        const exit = process.exit;
-        process.exit = sinon.spy();
-        cassandra.checkSchemasExistence.callsFake(cb => cb(false));
-
+    it('Should fail application if Cassandra initialization failed', done => {
         const plugin = new CassandraPluginService();
+
+        sinon.stub(process, 'exit');
+        sinon.stub(plugin, 'initCassandra').returns(Promise.reject('error'));
+
         plugin.afterStart();
 
         asyncAssertion(() => {
-            assert.equal(cassandra.checkSchemasExistence.callCount, 10);
             assert(process.exit.calledOnce);
 
-            process.exit = exit;
+            plugin.initCassandra.restore();
+            process.exit.restore();
             done();
         });
     });
@@ -115,7 +116,7 @@ describe('Plugin', () => {
         });
     });
 
-    it('Should NOT insert command update if command updates storing is disabled', done => {
+    it('Should update commands if command updates storing is disabled', done => {
         const msg = new MessageBuilder().withCommand({
             deviceId: 'test123',
             command: 'command name',
@@ -132,7 +133,7 @@ describe('Plugin', () => {
         asyncAssertion(() => {
             plugin.handleMessage(msg);
 
-            assert(cassandra.insertCommandUpdate.notCalled);
+            assert(cassandra.updateCommand.calledOnce);
 
             conf.CUSTOM.COMMAND_UPDATES_STORING = commandsUpdatesStoring;
             done();

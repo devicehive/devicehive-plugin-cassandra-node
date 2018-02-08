@@ -1,7 +1,12 @@
 const configurator = require('json-evn-configurator');
 
-const cassandraConf = require('./cassandra-config');
+const Utils = require('./Utils');
+const cassandraTables = require('../cassandraSchemas/cassandra-tables');
+
+const cassandraConf = configurator(require('./cassandra-config'), 'CASSANDRA');
+
+cassandraConf.CUSTOM.COMMAND_UPDATES_STORING = Utils.isNotEmpty(cassandraTables.commandUpdatesTables);
 
 module.exports = {
-    cassandra: configurator(cassandraConf, 'CASSANDRA')
+    cassandra: cassandraConf
 };

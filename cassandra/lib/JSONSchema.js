@@ -134,8 +134,10 @@ class JSONSchema {
 
         for (let prop in this._schema) {
             if (this._schema.hasOwnProperty(prop) && JSONSchema.isNotReservedProperty(prop) && prop in obj) {
-                if (Utils.isObject(this._schema[prop])) {
-                    filteredObj[prop] = new JSONSchema(this._schema[prop]).filterData(obj[prop]);
+                const isUDT = Utils.isObject(this._schema[prop]);
+                if (isUDT) {
+                    const udtSchema = new JSONSchema(this._schema[prop]);
+                    filteredObj[prop] = udtSchema.filterData(obj[prop]);
                 } else {
                     filteredObj[prop] = JSONSchema.cassandraStringTypeOrDefault(this._schema[prop], obj[prop]);
                 }
@@ -143,6 +145,46 @@ class JSONSchema {
         }
 
         return filteredObj;
+    }
+
+    extractNotKeys(data) {
+        const keys = this.extractKeys(data);
+        if (!keys) {
+            return null;
+        }
+
+        const notKeys = { ...data };
+
+        Object.keys(keys).forEach(k => {
+            if (k in notKeys) {
+                delete notKeys[k];
+            }
+        });
+
+        return notKeys;
+    }
+
+    extractKeys(data) {
+        if (!data) {
+            return null;
+        }
+
+        const keys = {};
+
+        for (let prop in data) {
+            if (data.hasOwnProperty(prop) && this.isKey(prop)) {
+                keys[prop] = data[prop];
+            }
+        }
+
+        return keys;
+    }
+
+    isKey(prop) {
+        const primaryKeys = this._schema[JSONSchema.PRIMARY_KEY];
+        const clusteredKeys = this._schema[JSONSchema.CLUSTERED_KEY];
+
+        return primaryKeys.includes(prop) || clusteredKeys.includes(prop);
     }
 
     /**

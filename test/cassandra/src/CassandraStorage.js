@@ -62,6 +62,20 @@ describe('Cassandra Storage Provider', () => {
         assert.equal(batchedQueries.length, 2);
     });
 
+    it('Should execute update query only for tables defined as command tables', () => {
+        const tables = new TablesBuilder().withTables('commands', 'another_commands').build();
+        const batchSpy = MockCassandraClient.prototype.batch;
+
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        cassandra.createTableSchemas(tables);
+        cassandra.assignTablesToCommands('commands', 'another_commands');
+
+        cassandra.updateCommand(dummyCommandData);
+
+        const batchedQueries = batchSpy.firstCall.args[0];
+        assert.equal(batchedQueries.length, 2);
+    });
+
     it('Should execute insert query only for tables defined as notification tables', () => {
         const tables = new TablesBuilder().withTables('commands', 'more_commands', 'notifications', 'shared').build();
         const batchSpy = MockCassandraClient.prototype.batch;
