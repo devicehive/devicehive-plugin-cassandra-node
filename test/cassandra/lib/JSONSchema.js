@@ -145,4 +145,107 @@ describe('JSON Schema', () => {
             col2: 'test2'
         });
     });
+
+    it('Should return true if schema columns set is same as columns in given metadata object', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            __primaryKey__: [ 'id' ]
+        });
+        const metadata = {
+            columnsByName: {
+                id: {}
+            }
+        };
+
+        assert.equal(schema.compareColumnsSetWithMetadata(metadata), true);
+    });
+
+    it('Should return false if schema columns set is NOT same as columns in given metadata object', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            __primaryKey__: [ 'id' ]
+        });
+        const metadata = {
+            columnsByName: {
+                col1: {}
+            }
+        };
+
+        assert.equal(schema.compareColumnsSetWithMetadata(metadata), false);
+    });
+
+    it('Should return array of mismatches in case some column types of schema do not match columns in metadata', () => {
+        const TEXT_TYPE_CODE = 10;
+        const INT_TYPE_CODE = 9;
+
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'text',
+            __primaryKey__: [ 'id' ]
+        });
+        const metadata = {
+            columnsByName: {
+                id: {
+                    type: {
+                        code: TEXT_TYPE_CODE
+                    }
+                },
+                col1: {
+                    type: {
+                        code: INT_TYPE_CODE
+                    }
+                }
+            }
+        };
+
+        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+
+        const expected = [
+            {
+                colName: 'id',
+                realType: 'text',
+                schemaType: 'int'
+            },
+            {
+                colName: 'col1',
+                realType: 'int',
+                schemaType: 'text'
+            }
+        ];
+        assert.deepEqual(mismatches, expected);
+    });
+
+    it('Should NOT return any mismatches in case column types are map with same key and value types', () => {
+        const MAP_TYPE_CODE = 33;
+        const TEXT_TYPE_CODE = 10;
+        const INT_TYPE_CODE = 9;
+
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'map<text,text>',
+            __primaryKey__: [ 'id' ]
+        });
+        const metadata = {
+            columnsByName: {
+                id: {
+                    type: {
+                        code: INT_TYPE_CODE
+                    }
+                },
+                col1: {
+                    type: {
+                        code: MAP_TYPE_CODE,
+                        info: [
+                            { code: TEXT_TYPE_CODE },
+                            { code: TEXT_TYPE_CODE }
+                        ]
+                    }
+                }
+            }
+        };
+
+        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 0);
+    });
 });

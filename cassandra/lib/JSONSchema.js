@@ -252,8 +252,8 @@ class JSONSchema {
         for (let colName in columns) {
             if (colName in metadata.columnsByName) {
                 const { type: dataType } = metadata.columnsByName[colName];
-                const realType = CassandraUtils.getDataTypeNameByCode(dataType.code);
-                const schemaType = columns[colName];
+                const realType = CassandraUtils.fullTypeName(dataType);
+                const schemaType = columns[colName].replace(/\s/g, '');
 
                 if (realType !== schemaType) {
                     mismatches.push({

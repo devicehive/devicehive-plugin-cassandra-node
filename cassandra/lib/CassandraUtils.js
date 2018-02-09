@@ -10,6 +10,27 @@ class CassandraUtils {
     }
 
     /**
+     * Returns full name of type with its types if type is complex
+     * @param {object} typeDescriptor cassandra-driver metadata type object
+     * @returns {string}
+     */
+    static fullTypeName(typeDescriptor) {
+        const descr = typeDescriptor;
+        let name = CassandraUtils.getDataTypeNameByCode(descr.code);
+
+        if (descr.info) {
+            const nestedTypes = [];
+            descr.info.forEach(type => {
+                nestedTypes.push(CassandraUtils.getDataTypeNameByCode(type.code));
+            });
+
+            name += `<${nestedTypes.join(',')}>`;
+        }
+
+        return name;
+    }
+
+    /**
      * Returns data type name by given numeric code
      * @param {Number} code
      * @returns {string|undefined}

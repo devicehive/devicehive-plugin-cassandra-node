@@ -52,8 +52,8 @@ class CassandraPluginService extends PluginService {
                 .assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables)
                 .assignTablesToNotifications(...cassandraTables.notificationTables);
 
-            return this.ensureSchemasExist(cassandra);
-        });
+            return this._schemaComparison(cassandra);
+        }).then(cassandra => this.ensureSchemasExist(cassandra));
     }
 
     ensureSchemasExist(cassandra) {
@@ -88,6 +88,30 @@ class CassandraPluginService extends PluginService {
                 cassandra.checkSchemasExistence(resolve);
             });
         };
+    }
+
+    _schemaComparison(cassandra) {
+        const comparison = cassandra.compareTableSchemas();
+
+        return new Promise((resolve, reject) => {
+            let ok = true;
+
+            comparison.on('tableExists', tableName => {
+                console.log(`${tableName}: Table already exists`);
+            }).on('columnsMismatch', tableName => {
+                console.log(`${tableName}: Mismatched schema`);
+                ok = false;
+            }).on('columnTypesMismatch', (tableName, colName, realType, schemaType) => {
+                console.log(`${tableName}: Mismatched ${colName} type, actual "${realType}", in JSON schema "${schemaType}"`);
+                ok = false;
+            }).on('done', () => {
+                if (ok) {
+                    resolve(cassandra);
+                } else {
+                    reject(new Error('Table schemas mismatch'));
+                }
+            });
+        });
     }
 }
 

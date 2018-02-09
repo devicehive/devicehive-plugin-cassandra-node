@@ -22,6 +22,15 @@ describe('Plugin', () => {
         cassandra.insertCommandUpdate = sinon.stub().returns(Promise.resolve({}));
         cassandra.insertNotification = sinon.stub().returns(Promise.resolve({}));
         cassandra.checkSchemasExistence = sinon.stub().returns(cassandra).callsFake(cb => cb(true));
+        cassandra.compareTableSchemas = sinon.stub().returns({
+            on(event, handler) {
+                if (event === 'done') {
+                    handler();
+                }
+
+                return this;
+            }
+        });
 
         sinon.stub(cassandraStorage, 'connect').returns(Promise.resolve(cassandra));
 
@@ -82,10 +91,14 @@ describe('Plugin', () => {
         }).build();
 
         const plugin = new CassandraPluginService();
+        sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
+
         plugin.afterStart();
 
         asyncAssertion(() => {
             plugin.handleMessage(msg);
+
+            plugin.initCassandra.restore();
 
             assert(cassandra.insertCommand.calledOnce);
             done();
@@ -104,14 +117,18 @@ describe('Plugin', () => {
         conf.CUSTOM.COMMAND_UPDATES_STORING = true;
 
         const plugin = new CassandraPluginService();
+        sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
+
         plugin.afterStart();
 
         asyncAssertion(() => {
             plugin.handleMessage(msg);
 
+            plugin.initCassandra.restore();
+            conf.CUSTOM.COMMAND_UPDATES_STORING = commandsUpdatesStoring;
+
             assert(cassandra.insertCommandUpdate.calledOnce);
 
-            conf.CUSTOM.COMMAND_UPDATES_STORING = commandsUpdatesStoring;
             done();
         });
     });
@@ -128,14 +145,18 @@ describe('Plugin', () => {
         conf.CUSTOM.COMMAND_UPDATES_STORING = false;
 
         const plugin = new CassandraPluginService();
+        sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
+
         plugin.afterStart();
 
         asyncAssertion(() => {
             plugin.handleMessage(msg);
 
+            plugin.initCassandra.restore();
+            conf.CUSTOM.COMMAND_UPDATES_STORING = commandsUpdatesStoring;
+
             assert(cassandra.updateCommand.calledOnce);
 
-            conf.CUSTOM.COMMAND_UPDATES_STORING = commandsUpdatesStoring;
             done();
         });
     });
@@ -147,10 +168,14 @@ describe('Plugin', () => {
         }).build();
 
         const plugin = new CassandraPluginService();
+        sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
+
         plugin.afterStart();
 
         asyncAssertion(() => {
             plugin.handleMessage(msg);
+
+            plugin.initCassandra.restore();
 
             assert(cassandra.insertNotification.calledOnce);
             done();
