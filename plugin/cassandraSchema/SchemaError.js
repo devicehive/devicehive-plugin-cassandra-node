@@ -16,7 +16,7 @@ class SchemaError extends Error {
     }
 
     static schemaMismatch() {
-        return new SchemaError(null, 'Schema mismatch, please check your JSON schemas of tables and actual schemas in Casasndra');
+        return new SchemaError(null, 'Schema mismatch, please check your JSON schema of tables and actual schemas in Cassandra');
     }
 }
 

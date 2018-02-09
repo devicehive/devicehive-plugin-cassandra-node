@@ -58,7 +58,7 @@ class CassandraPluginService extends PluginService {
 
     ensureSchemasExist(cassandra) {
         return new Promise((resolve, reject) => {
-            const interval = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL) || 0;
+            const interval = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL) || 1000;
             const schemaCheck = this._createSchemaChecking(cassandra);
             const checking = setInterval(() => {
                 schemaCheck().then(ok => {

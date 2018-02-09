@@ -7,10 +7,10 @@ class SchemaCreator {
 
     create({ udt, tables }) {
         const schemaComparison = this._client.setTableSchemas(tables).compareTableSchemas();
-
         const comparison = this._resolveSchemaComparison(schemaComparison);
 
-        return comparison.then(() => this._client.createUDTSchemas(udt)).then(() => this._client.createTableSchemas(tables));
+        return comparison.then(() => this._client.createUDTSchemas(udt))
+            .then(() => this._client.createTableSchemas(tables));
     }
 
     _resolveSchemaComparison(comparison) {
