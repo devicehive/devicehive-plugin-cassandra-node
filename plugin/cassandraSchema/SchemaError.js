@@ -1,5 +1,5 @@
 class SchemaError extends Error {
-    constructor(tableName, field, message) {
+    constructor(tableName, message) {
         super();
 
         this.tableName = tableName;
@@ -12,7 +12,11 @@ class SchemaError extends Error {
     }
 
     static parametersError(tableName) {
-        return new SchemaError(tableName, 'parameters', 'parameters field is not allowed type');
+        return new SchemaError(tableName, 'parameters field is not allowed type');
+    }
+
+    static schemaMismatch() {
+        return new SchemaError(null, 'Schema mismatch, please check your JSON schemas of tables and actual schemas in Casasndra');
     }
 }
 

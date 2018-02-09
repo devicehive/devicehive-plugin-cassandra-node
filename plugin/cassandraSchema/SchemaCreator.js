@@ -6,7 +6,33 @@ class SchemaCreator {
     }
 
     create({ udt, tables }) {
-        return this._client.createUDTSchemas(udt).then(() => this._client.createTableSchemas(tables));
+        const schemaComparison = this._client.setTableSchemas(tables).compareTableSchemas();
+
+        const comparison = this._resolveSchemaComparison(schemaComparison);
+
+        return comparison.then(() => this._client.createUDTSchemas(udt)).then(() => this._client.createTableSchemas(tables));
+    }
+
+    _resolveSchemaComparison(comparison) {
+        return new Promise((resolve, reject) => {
+            let ok = true;
+
+            comparison.on('tableExists', tableName => {
+                console.log(`${tableName}: Table already exists`);
+            }).on('columnsMismatch', tableName => {
+                console.log(`${tableName}: Mismatched schema`);
+                ok = false;
+            }).on('columnTypesMismatch', (tableName, colName, realType, schemaType) => {
+                console.log(`${tableName}: Mismatched ${colName} type, actual "${realType}", in JSON schema "${schemaType}"`);
+                ok = false;
+            }).on('done', () => {
+                if (ok) {
+                    resolve();
+                } else {
+                    reject(SchemaError.schemaMismatch());
+                }
+            });
+        });
     }
 
     static getSchemasErrors(tableSchemas) {

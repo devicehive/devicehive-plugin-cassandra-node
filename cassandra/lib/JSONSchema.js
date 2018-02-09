@@ -19,11 +19,9 @@ class JSONSchema {
         const columns = [];
 
         for (let columnName in this._schema) {
-            if(this._schema.hasOwnProperty(columnName)) {
-                const col = this.buildColumn(columnName);
-                if(col) {
-                    columns.push(col);
-                }
+            const col = this.buildColumn(columnName);
+            if (col) {
+                columns.push(col);
             }
         }
 
@@ -48,7 +46,7 @@ class JSONSchema {
      * @returns {string}
      */
     buildKeys() {
-        if(JSONSchema.invalidPrimaryKey(this._schema)) {
+        if (JSONSchema.invalidPrimaryKey(this._schema)) {
             return '';
         }
 
@@ -223,6 +221,67 @@ class JSONSchema {
         }
 
         return this;
+    }
+
+    /**
+     * Returns true if schema contains same columns as metadata
+     * @param metadata cassandra-driver metadata object
+     * @returns {boolean}
+     */
+    compareColumnsSetWithMetadata(metadata) {
+        const schemaColumns = Object.keys(this.getColumns()).map(col => col.toLowerCase());
+        const realTableColumns = Object.keys(metadata.columnsByName);
+
+        if (schemaColumns.length !== realTableColumns.length) {
+            return false;
+        }
+
+        return schemaColumns.every(col => realTableColumns.includes(col));
+    }
+
+    /**
+     * Returns array of column types mismatches in schema with metadata
+     * @param metadata cassandra-driver metadata object
+     * @returns {Array}
+     */
+    diffColumnTypesWithMetadata(metadata) {
+        const mismatches = [];
+
+        const columns = this.getColumns();
+
+        for (let colName in columns) {
+            if (colName in metadata.columnsByName) {
+                const { type: dataType } = metadata.columnsByName[colName];
+                const realType = CassandraUtils.getDataTypeNameByCode(dataType.code);
+                const schemaType = columns[colName];
+
+                if (realType !== schemaType) {
+                    mismatches.push({
+                        colName,
+                        realType,
+                        schemaType
+                    });
+                }
+            }
+        }
+
+        return mismatches;
+    }
+
+    /**
+     * Returns schema properties ad values which are not reserved
+     * @returns {Object}
+     */
+    getColumns() {
+        const cols = {};
+
+        for (let prop in this._schema) {
+            if (JSONSchema.isNotReservedProperty(prop)) {
+                cols[prop] = this._schema[prop];
+            }
+        }
+
+        return cols;
     }
 
     /**

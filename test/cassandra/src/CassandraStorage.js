@@ -237,6 +237,7 @@ describe('Cassandra Storage Provider', () => {
 
     it('Should emit "tableExists" event if table already exists', done => {
         MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve({
+            name: 'testTable',
             columnsByName: {
                 col1: {
                     name: 'col1',
@@ -251,16 +252,18 @@ describe('Cassandra Storage Provider', () => {
         const cassandra = new CassandraStorage(new MockCassandraClient());
         const schemas = {
             testTable: {
-                col1: 'int'
+                col1: 'int',
+                __primaryKey__: [ 'col1' ]
             }
         };
 
-        const eventEmitter = cassandra.compareTableSchemas(schemas);
+        cassandra.setTableSchemas(schemas);
+        const eventEmitter = cassandra.compareTableSchemas();
 
         sinon.spy(eventEmitter, 'emit');
 
         asyncAssertion(() => {
-            assert(eventEmitter.emit.calledOnce);
+            assert.equal(eventEmitter.emit.callCount, 2, 'Number of times event was emitted');
 
             const [ event, tableName ] = eventEmitter.emit.firstCall.args;
             assert.equal(event, 'tableExists');
@@ -269,8 +272,34 @@ describe('Cassandra Storage Provider', () => {
         });
     });
 
+    it('Should emit "done" event when comparison is done', done => {
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(null));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                __primaryKey__: [ 'col1' ]
+            }
+        };
+
+        cassandra.setTableSchemas(schemas);
+        const eventEmitter = cassandra.compareTableSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 1, 'Number of times event was emitted');
+
+            const [ event ] = eventEmitter.emit.firstCall.args;
+            assert.equal(event, 'done');
+
+            done();
+        });
+    });
+
     it('Should emit "columnTypesMismatch" event if table contains same columns as schema but different types', done => {
         MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve({
+            name: 'testTable',
             columnsByName: {
                 col1: {
                     name: 'col1',
@@ -294,16 +323,19 @@ describe('Cassandra Storage Provider', () => {
         const schemas = {
             testTable: {
                 col1: 'int',
-                col2: 'int'
+                col2: 'int',
+                __primaryKey__: [ 'col1' ],
+                __clusteredKey__: [ 'col2' ]
             }
         };
 
-        const eventEmitter = cassandra.compareTableSchemas(schemas);
+        cassandra.setTableSchemas(schemas);
+        const eventEmitter = cassandra.compareTableSchemas();
 
         sinon.spy(eventEmitter, 'emit');
 
         asyncAssertion(() => {
-            assert(eventEmitter.emit.calledTwice);
+            assert.equal(eventEmitter.emit.callCount, 3, 'Number of times event was emitted');
 
             const [ event, tableName, colName, realType, schemaType ] = eventEmitter.emit.secondCall.args;
             assert.equal(event, 'columnTypesMismatch');
@@ -318,6 +350,7 @@ describe('Cassandra Storage Provider', () => {
 
     it('Should emit "columnsMismatch" event if schema has columns which real table does not have', done => {
         MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve({
+            name: 'testTable',
             columnsByName: {
                 col1: {
                     name: 'col1',
@@ -341,16 +374,19 @@ describe('Cassandra Storage Provider', () => {
         const schemas = {
             testTable: {
                 col1: 'int',
-                col3: 'int'
+                col3: 'int',
+                __primaryKey__: [ 'col1' ],
+                __clusteredKey__: [ 'col3' ]
             }
         };
 
-        const eventEmitter = cassandra.compareTableSchemas(schemas);
+        cassandra.setTableSchemas(schemas);
+        const eventEmitter = cassandra.compareTableSchemas();
 
         sinon.spy(eventEmitter, 'emit');
 
         asyncAssertion(() => {
-            assert(eventEmitter.emit.calledTwice);
+            assert.equal(eventEmitter.emit.callCount, 3, 'Number of times event was emitted');
 
             const [ event, tableName ] = eventEmitter.emit.secondCall.args;
             assert.equal(event, 'columnsMismatch');

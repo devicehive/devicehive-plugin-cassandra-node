@@ -1,4 +1,7 @@
+const EventEmitter = require('events');
+
 const Utils = require('../lib/Utils');
+const JSONSchema = require('../lib/JSONSchema');
 const CQLBuilder = require('../lib/CQLBuilder');
 
 class CassandraStorage {
@@ -202,92 +205,39 @@ class CassandraStorage {
         return this;
     }
 
-    compareTableSchemas(tableSchemas) {
-        const eventEmitter = new (require('events'))();
+    compareTableSchemas() {
+        const notifier = new EventEmitter();
 
-        for (let tableName in tableSchemas) {
-            if (tableSchemas.hasOwnProperty(tableName)) {
-                this._cassandra.metadata.getTable(this._cassandra.keyspace, tableName).then(md => {
-                    eventEmitter.emit('tableExists', tableName);
+        const requests = this._requestMetadata(this._tableSchemas);
 
-                    const tableSchema = tableSchemas[tableName];
-
-                    if (!this._sameColumnsSet(tableSchema, md)) {
-                        eventEmitter.emit('columnsMismatch', tableName);
-                    }
-
-                    this._compareColumnTypes(tableSchema, md).forEach(mismatch => {
-                        const mismatchDetails = [ tableName, mismatch.colName, mismatch.realType, mismatch.schemaType ];
-                        eventEmitter.emit('columnTypesMismatch', ...mismatchDetails);
-                    });
-                });
-            }
-        }
-
-        return eventEmitter;
-    }
-
-    _sameColumnsSet(tableSchema, metadata) {
-        const schemaColumns = Object.keys(tableSchema);
-        const realTableColumns = Object.keys(metadata.columnsByName);
-
-        if (schemaColumns.length !== realTableColumns.length) {
-            return false;
-        }
-
-        return schemaColumns.every(col => realTableColumns.includes(col));
-    }
-
-    _compareColumnTypes(tableSchema, metadata) {
-        const result = [];
-
-        for (let colName in tableSchema) {
-            if (colName in metadata.columnsByName) {
-                const { type: dataType } = metadata.columnsByName[colName];
-                const realType = this._getTypeNameByCode(dataType.code);
-                const schemaType = tableSchema[colName];
-
-                if (realType !== schemaType) {
-                    result.push({
-                        colName,
-                        realType,
-                        schemaType
-                    });
+        requests.forEach(metadataRequest => {
+            metadataRequest.then(md => {
+                if (!md) {
+                    return;
                 }
-            }
-        }
 
-        return result;
-    }
+                const tableName = md.name;
 
-    _getTypeNameByCode(code) {
-        return ({
-            1: 'ascii',
-            2: 'bigint',
-            3: 'blob',
-            4: 'boolean',
-            5: 'counter',
-            6: 'decimal',
-            7: 'double',
-            8: 'float',
-            9: 'int',
-            10: 'text',
-            11: 'timestamp',
-            12: 'uuid',
-            13: 'varchar',
-            14: 'varint',
-            15: 'timeuuid',
-            16: 'inet',
-            17: 'date',
-            18: 'time',
-            19: 'smallint',
-            20: 'tinyint',
-            32: 'list',
-            33: 'map',
-            34: 'set',
-            48: 'udt',
-            49: 'tuple'
-        })[code];
+                notifier.emit('tableExists', tableName);
+
+                const tableSchema = new JSONSchema(this._tableSchemas[tableName]);
+
+                if (!tableSchema.compareColumnsSetWithMetadata(md)) {
+                    notifier.emit('columnsMismatch', tableName);
+                }
+
+                tableSchema.diffColumnTypesWithMetadata(md).forEach(mismatch => {
+                    const mismatchDetails = [ tableName, mismatch.colName, mismatch.realType, mismatch.schemaType ];
+                    notifier.emit('columnTypesMismatch', ...mismatchDetails);
+                });
+            });
+        });
+
+        Promise.all(requests).then(() => {
+            notifier.emit('done');
+        });
+
+        return notifier;
     }
 
     /**
