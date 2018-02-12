@@ -34,21 +34,52 @@ class Metadata {
      * @returns {string}
      */
     getColumnFullTypeName(colName) {
-        const type = this._md.columnsByName[colName].type;
-        let name = Metadata.getDataTypeNameByCode(type.code);
+        const type = this._getTypeDescription(colName);
+        let name = this._complexType(colName) || this._customType(colName) || this._simpleType(colName);
+
+        if (type.options && type.options.frozen) {
+            name = `frozen<${name}>`;
+        }
+
+        return name;
+    }
+
+    _complexType(colName) {
+        const type = this._getTypeDescription(colName);
 
         if (type.info && type.info.length) {
+            const name = Metadata.getDataTypeNameByCode(type.code);
+
             const nestedTypes = [];
             type.info.forEach(t => {
                 nestedTypes.push(Metadata.getDataTypeNameByCode(t.code));
             });
 
-            name += `<${nestedTypes.join(',')}>`;
-        } else if (type.info && type.info.name) {
-            name = type.info.name;
+
+            return name + `<${nestedTypes.join(',')}>`;
         }
 
-        return name;
+        return '';
+    }
+
+    _customType(colName) {
+        const type = this._getTypeDescription(colName);
+
+        if (type.info && type.info.name) {
+            return type.info.name;
+        }
+
+        return '';
+    }
+
+    _simpleType(colName) {
+        const type = this._getTypeDescription(colName);
+        return Metadata.getDataTypeNameByCode(type.code);
+    }
+
+
+    _getTypeDescription(colName) {
+        return this._md.columnsByName[colName].type;
     }
 
     /**

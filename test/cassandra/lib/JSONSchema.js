@@ -234,6 +234,25 @@ describe('JSON Schema', () => {
         assert.equal(mismatches.length, 0);
     });
 
+    it('Should return mismatches in case columns are the same user defined type but in metadata type is frozen', () => {
+        const UDT_TYPE_CODE = 48;
+        const INT_TYPE_CODE = 9;
+
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'my_type',
+            __primaryKey__: [ 'id' ]
+        });
+
+        const mdBuilder = new MetadataBuilder().withColumn('id', INT_TYPE_CODE).withColumn('col1', UDT_TYPE_CODE);
+        mdBuilder.withColumnTypeName('col1', 'my_type').withColumnTypeOption('col1', 'frozen', true);
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 1);
+    });
+
     it('Should return mismatches in case columns are NOT the same user defined type', () => {
         const UDT_TYPE_CODE = 48;
         const INT_TYPE_CODE = 9;

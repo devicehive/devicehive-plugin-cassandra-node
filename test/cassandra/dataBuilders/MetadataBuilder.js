@@ -1,6 +1,18 @@
 const DataBuilder = require('smp-data-builder');
 
 class MetadataBuilder extends DataBuilder {
+    withColumnTypeOption(columnName, optName, optVal) {
+        const type = this.obj.columnsByName[columnName].type;
+
+        if (!type.options) {
+            type.options = {};
+        }
+
+        type.options[optName] = optVal;
+
+        return this;
+    }
+
     withColumnNestedType(columnName, typeCode) {
         const type = this.obj.columnsByName[columnName].type;
 
