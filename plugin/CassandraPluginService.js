@@ -91,27 +91,50 @@ class CassandraPluginService extends PluginService {
     }
 
     _schemaComparison(cassandra) {
-        const comparison = cassandra.compareTableSchemas();
+        const tableComparisonNotifier = cassandra.compareTableSchemas();
+        const udtComparisonNotifier = cassandra.compareUDTSchemas();
 
-        return new Promise((resolve, reject) => {
+        const tableComparison = new Promise((resolve, reject) => {
             let ok = true;
 
-            comparison.on('tableExists', tableName => {
-                console.log(`${tableName}: Table already exists`);
+            tableComparisonNotifier.on('tableExists', tableName => {
+                console.log(`TABLE ${tableName}: Table already exists`);
             }).on('columnsMismatch', tableName => {
-                console.log(`${tableName}: Mismatched schema`);
+                console.log(`TABLE ${tableName}: Mismatched schema`);
                 ok = false;
             }).on('columnTypesMismatch', (tableName, colName, realType, schemaType) => {
-                console.log(`${tableName}: Mismatched ${colName} type, actual "${realType}", in JSON schema "${schemaType}"`);
+                console.log(`TABLE ${tableName}: Mismatched ${colName} type, actual "${realType}", in JSON schema "${schemaType}"`);
                 ok = false;
             }).on('done', () => {
                 if (ok) {
-                    resolve(cassandra);
+                    resolve();
                 } else {
-                    reject(new Error('Table schemas mismatch'));
+                    reject(SchemaError.tableSchemaMismatch());
                 }
             });
         });
+
+        const udtComparison = new Promise((resolve, reject) => {
+            let ok = true;
+
+            udtComparisonNotifier.on('customTypeExists', udtName => {
+                console.log(`UDT ${udtName}: UDT already exists`);
+            }).on('fieldsMismatch', udtName => {
+                console.log(`UDT ${udtName}: Mismatched schema`);
+                ok = false;
+            }).on('fieldTypesMismatch', (udtName, fieldName, realType, schemaType) => {
+                console.log(`UDT ${udtName}: Mismatched ${fieldName} type, actual "${realType}", in JSON schema "${schemaType}"`);
+                ok = false;
+            }).on('done', () => {
+                if (ok) {
+                    resolve();
+                } else {
+                    reject(SchemaError.udtSchemaMismatch());
+                }
+            });
+        });
+
+        return Promise.all([ tableComparison, udtComparison ]);
     }
 }
 
