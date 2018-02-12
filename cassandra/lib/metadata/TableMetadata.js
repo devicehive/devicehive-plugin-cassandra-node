@@ -7,6 +7,7 @@ class TableMetadata extends Metadata {
     }
 
     columnExists(colName) {
+        colName = colName.toLowerCase();
         return colName in this._md.columnsByName;
     }
 

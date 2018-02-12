@@ -7,6 +7,7 @@ class UDTMetadata extends Metadata {
     }
 
     columnExists(colName) {
+        colName = colName.toLowerCase();
         return this._md.fields.some(f => f.name === colName);
     }
 

@@ -62,6 +62,8 @@ class Metadata {
      * @returns {string}
      */
     getColumnFullTypeName(colName) {
+        colName = colName.toLowerCase();
+        
         const type = this._getTypeDescription(colName);
         let name = this._complexType(colName) || this._customType(colName) || this._simpleType(colName);
 

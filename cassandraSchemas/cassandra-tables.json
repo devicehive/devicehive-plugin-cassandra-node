@@ -2,7 +2,7 @@
   "tables": {
     "commands": {
       "command": "text",
-      "deviceId": "int",
+      "deviceId": "text",
       "timestamp": "timestamp",
       "id": "int",
       "parameters": "frozen<params>",

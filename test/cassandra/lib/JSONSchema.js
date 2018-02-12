@@ -174,7 +174,7 @@ describe('JSON Schema', () => {
 
         const schema = new JSONSchema({
             id: 'int',
-            col1: 'text',
+            Col1: 'text',
             __primaryKey__: [ 'id' ]
         });
         const metadata = new MetadataBuilder().withColumn('id', TEXT_TYPE_CODE).withColumn('col1', INT_TYPE_CODE).build();
@@ -188,7 +188,7 @@ describe('JSON Schema', () => {
                 schemaType: 'int'
             },
             {
-                colName: 'col1',
+                colName: 'Col1',
                 realType: 'int',
                 schemaType: 'text'
             }

@@ -10,7 +10,7 @@ services:
     depends_on:
       - schema
     volumes:
-      - .\cassandraSchemas\:/usr/src/app/cassandraSchemas
+      - ./cassandraSchemas/:/usr/src/app/cassandraSchemas
   schema:
     build:
       context: .
@@ -18,4 +18,4 @@ services:
     env_file:
       - .env
     volumes:
-      - .\cassandraSchemas\:/usr/src/app/cassandraSchemas
+      - ./cassandraSchemas/:/usr/src/app/cassandraSchemas
