@@ -1,5 +1,6 @@
 const Utils = require('./Utils');
 const CassandraUtils = require('./CassandraUtils');
+const Metadata = require('./Metadata');
 
 class JSONSchema {
     static get PRIMARY_KEY() { return '__primaryKey__'; }
@@ -212,7 +213,7 @@ class JSONSchema {
         }
 
         for (let colName in this._schema) {
-            if (this._schema.hasOwnProperty(colName) && JSONSchema.isNotReservedProperty(colName)) {
+            if (JSONSchema.isNotReservedProperty(colName)) {
                 const typeName = CassandraUtils.extractTypeName(this._schema[colName]);
                 if (types[typeName]) {
                     this._schema[colName] = types[typeName];
@@ -225,34 +226,27 @@ class JSONSchema {
 
     /**
      * Returns true if schema contains same columns as metadata
-     * @param metadata cassandra-driver metadata object
+     * @param metadataDescriptor cassandra-driver metadata object
      * @returns {boolean}
      */
-    compareColumnsSetWithMetadata(metadata) {
-        const schemaColumns = Object.keys(this.getColumns()).map(col => col.toLowerCase());
-        const realTableColumns = Object.keys(metadata.columnsByName);
-
-        if (schemaColumns.length !== realTableColumns.length) {
-            return false;
-        }
-
-        return schemaColumns.every(col => realTableColumns.includes(col));
+    compareColumnsSetWithMetadata(metadataDescriptor) {
+        return new Metadata(metadataDescriptor).isSameColumnsSchema(this);
     }
 
     /**
      * Returns array of column types mismatches in schema with metadata
-     * @param metadata cassandra-driver metadata object
+     * @param metadataDescriptor cassandra-driver metadata object
      * @returns {Array}
      */
-    diffColumnTypesWithMetadata(metadata) {
+    diffColumnTypesWithMetadata(metadataDescriptor) {
         const mismatches = [];
+        const metadata = new Metadata(metadataDescriptor);
 
         const columns = this.getColumns();
 
         for (let colName in columns) {
-            if (colName in metadata.columnsByName) {
-                const { type: dataType } = metadata.columnsByName[colName];
-                const realType = CassandraUtils.fullTypeName(dataType);
+            if (metadata.columnExists(colName)) {
+                const realType = metadata.getColumnFullTypeName(colName);
                 const schemaType = columns[colName].replace(/\s/g, '');
 
                 if (realType !== schemaType) {

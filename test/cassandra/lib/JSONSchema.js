@@ -1,5 +1,7 @@
 const assert = require('assert');
 
+const MetadataBuilder = require('../dataBuilders/MetadataBuilder');
+
 const JSONSchema = require('../../../cassandra/lib/JSONSchema');
 
 describe('JSON Schema', () => {
@@ -151,11 +153,7 @@ describe('JSON Schema', () => {
             id: 'int',
             __primaryKey__: [ 'id' ]
         });
-        const metadata = {
-            columnsByName: {
-                id: {}
-            }
-        };
+        const metadata = new MetadataBuilder().withColumn('id').build();
 
         assert.equal(schema.compareColumnsSetWithMetadata(metadata), true);
     });
@@ -165,11 +163,7 @@ describe('JSON Schema', () => {
             id: 'int',
             __primaryKey__: [ 'id' ]
         });
-        const metadata = {
-            columnsByName: {
-                col1: {}
-            }
-        };
+        const metadata = new MetadataBuilder().withColumn('col1').build();
 
         assert.equal(schema.compareColumnsSetWithMetadata(metadata), false);
     });
@@ -183,20 +177,7 @@ describe('JSON Schema', () => {
             col1: 'text',
             __primaryKey__: [ 'id' ]
         });
-        const metadata = {
-            columnsByName: {
-                id: {
-                    type: {
-                        code: TEXT_TYPE_CODE
-                    }
-                },
-                col1: {
-                    type: {
-                        code: INT_TYPE_CODE
-                    }
-                }
-            }
-        };
+        const metadata = new MetadataBuilder().withColumn('id', TEXT_TYPE_CODE).withColumn('col1', INT_TYPE_CODE).build();
 
         const mismatches = schema.diffColumnTypesWithMetadata(metadata);
 
@@ -225,27 +206,50 @@ describe('JSON Schema', () => {
             col1: 'map<text,text>',
             __primaryKey__: [ 'id' ]
         });
-        const metadata = {
-            columnsByName: {
-                id: {
-                    type: {
-                        code: INT_TYPE_CODE
-                    }
-                },
-                col1: {
-                    type: {
-                        code: MAP_TYPE_CODE,
-                        info: [
-                            { code: TEXT_TYPE_CODE },
-                            { code: TEXT_TYPE_CODE }
-                        ]
-                    }
-                }
-            }
-        };
+        const mdBuilder = new MetadataBuilder().withColumn('id', INT_TYPE_CODE).withColumn('col1', MAP_TYPE_CODE);
+        mdBuilder.withColumnNestedType('col1', TEXT_TYPE_CODE).withColumnNestedType('col1', TEXT_TYPE_CODE);
+        const metadata = mdBuilder.build();
 
         const mismatches = schema.diffColumnTypesWithMetadata(metadata);
 
         assert.equal(mismatches.length, 0);
+    });
+
+    it('Should NOT return any mismatches in case columns are the same user defined type', () => {
+        const UDT_TYPE_CODE = 48;
+        const INT_TYPE_CODE = 9;
+
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'my_type',
+            __primaryKey__: [ 'id' ]
+        });
+
+        const mdBuilder = new MetadataBuilder().withColumn('id', INT_TYPE_CODE).withColumn('col1', UDT_TYPE_CODE);
+        mdBuilder.withColumnTypeName('col1', 'my_type');
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 0);
+    });
+
+    it('Should return mismatches in case columns are NOT the same user defined type', () => {
+        const UDT_TYPE_CODE = 48;
+        const INT_TYPE_CODE = 9;
+
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'my_type',
+            __primaryKey__: [ 'id' ]
+        });
+
+        const mdBuilder = new MetadataBuilder().withColumn('id', INT_TYPE_CODE).withColumn('col1', UDT_TYPE_CODE);
+        mdBuilder.withColumnTypeName('col1', 'another_type');
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 1);
     });
 });
