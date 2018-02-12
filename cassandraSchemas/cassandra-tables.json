@@ -2,10 +2,10 @@
   "tables": {
     "commands": {
       "command": "text",
-      "deviceId": "text",
+      "deviceId": "int",
       "timestamp": "timestamp",
       "id": "int",
-      "parameters": "map<text,text>",
+      "parameters": "frozen<params>",
 
       "__primaryKey__": [ "command", "deviceId" ],
       "__clusteredKey__": [ "timestamp" ],

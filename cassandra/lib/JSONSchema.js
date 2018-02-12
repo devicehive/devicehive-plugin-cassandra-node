@@ -1,6 +1,6 @@
 const Utils = require('./Utils');
 const CassandraUtils = require('./CassandraUtils');
-const Metadata = require('./Metadata');
+const Metadata = require('./metadata');
 
 class JSONSchema {
     static get PRIMARY_KEY() { return '__primaryKey__'; }
@@ -230,7 +230,7 @@ class JSONSchema {
      * @returns {boolean}
      */
     compareColumnsSetWithMetadata(metadataDescriptor) {
-        return new Metadata(metadataDescriptor).isSameColumnsSchema(this);
+        return Metadata.create(metadataDescriptor).isSameMembersSchema(this);
     }
 
     /**
@@ -240,7 +240,7 @@ class JSONSchema {
      */
     diffColumnTypesWithMetadata(metadataDescriptor) {
         const mismatches = [];
-        const metadata = new Metadata(metadataDescriptor);
+        const metadata = Metadata.create(metadataDescriptor);
 
         const columns = this.getColumns();
 
@@ -263,7 +263,7 @@ class JSONSchema {
     }
 
     /**
-     * Returns schema properties ad values which are not reserved
+     * Returns schema properties and values which are not reserved
      * @returns {Object}
      */
     getColumns() {

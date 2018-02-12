@@ -15,8 +15,12 @@ class SchemaError extends Error {
         return new SchemaError(tableName, 'parameters field is not allowed type');
     }
 
-    static schemaMismatch() {
-        return new SchemaError(null, 'Schema mismatch, please check your JSON schema of tables and actual schemas in Cassandra');
+    static tableSchemaMismatch() {
+        return new SchemaError(null, 'Table schema mismatch, please check your JSON schema of tables and actual schemas in Cassandra');
+    }
+
+    static udtSchemaMismatch() {
+        return new SchemaError(null, 'UDT schema mismatch, please check your JSON schema of UDTs and actual schemas in Cassandra');
     }
 }
 

@@ -3,20 +3,27 @@ class Metadata {
         this._md = md;
     }
 
+    static create(md) {
+        // Because of cyclic dependency we will require child classes right before instance creation
+        const TableMetadata = require('./TableMetadata');
+        const UDTMetadata = require('./UDTMetadata');
+
+        if (md.columnsByName) {
+            return new TableMetadata(md);
+        } else if (md.fields) {
+            return new UDTMetadata(md);
+        }
+
+        return null;
+    }
+
     /**
-     * Returns true if JSON schema is the same as metadata of real schema
+     * Returns true if JSON schema is the same as metadata of real schema (contains same members)
      * @param {JSONSchema} jsonSchema
      * @returns {boolean}
      */
-    isSameColumnsSchema(jsonSchema) {
-        const schemaColumns = Object.keys(jsonSchema.getColumns()).map(col => col.toLowerCase());
-        const realTableColumns = Object.keys(this._md.columnsByName);
-
-        if (schemaColumns.length !== realTableColumns.length) {
-            return false;
-        }
-
-        return schemaColumns.every(col => realTableColumns.includes(col));
+    isSameMembersSchema(jsonSchema) {
+        throw new TypeError('isSameMembersSchema() is not implemented');
     }
 
     /**
@@ -25,7 +32,28 @@ class Metadata {
      * @returns {boolean}
      */
     columnExists(colName) {
-        return colName in this._md.columnsByName;
+        throw new TypeError('columnExists() is not implemented');
+    }
+
+    _getTypeDescription(colName) {
+        throw new TypeError('_getTypeDescription() is not implemented');
+    }
+
+    /**
+     * Returns true if JSON schema is the same as metadata of real schema (contains same members)
+     * @param {JSONSchema} jsonSchema
+     * @param {Array<string>} structureMembers Array of member names of structure (table or UDT)
+     * @returns {boolean}
+     * @private
+     */
+    _sameStructure(jsonSchema, structureMembers) {
+        const schemaColumns = Object.keys(jsonSchema.getColumns()).map(col => col.toLowerCase());
+
+        if (schemaColumns.length !== structureMembers.length) {
+            return false;
+        }
+
+        return schemaColumns.every(col => structureMembers.includes(col));
     }
 
     /**
@@ -75,11 +103,6 @@ class Metadata {
     _simpleType(colName) {
         const type = this._getTypeDescription(colName);
         return Metadata.getDataTypeNameByCode(type.code);
-    }
-
-
-    _getTypeDescription(colName) {
-        return this._md.columnsByName[colName].type;
     }
 
     /**

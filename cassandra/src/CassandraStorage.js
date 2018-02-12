@@ -4,6 +4,8 @@ const Utils = require('../lib/Utils');
 const JSONSchema = require('../lib/JSONSchema');
 const CQLBuilder = require('../lib/CQLBuilder');
 
+const SchemaComparisonNotifier = require('./SchemaComparisonNotifier');
+
 class CassandraStorage {
     static get COMMAND_GROUP() { return 'commands'; }
     static get NOTIFICATION_GROUP() { return 'notifications'; }
@@ -206,9 +208,27 @@ class CassandraStorage {
     }
 
     compareTableSchemas() {
-        const notifier = new EventEmitter();
+        const notifier = new SchemaComparisonNotifier({
+            exists: 'tableExists',
+            structureMismatch: 'columnsMismatch',
+            typesMismatch: 'columnTypesMismatch'
+        });
 
-        const requests = this._requestMetadata(this._tableSchemas);
+        return this._compareSchemas(this._tableSchemas, notifier);
+    }
+
+    compareUDTSchemas() {
+        const notifier = new SchemaComparisonNotifier({
+            exists: 'customTypeExists',
+            structureMismatch: 'fieldsMismatch',
+            typesMismatch: 'fieldTypesMismatch'
+        });
+
+        return this._compareSchemas(this._userTypes, notifier);
+    }
+
+    _compareSchemas(schemas, notifier) {
+        const requests = this._requestMetadata(schemas);
 
         requests.forEach(metadataRequest => {
             metadataRequest.then(md => {
@@ -216,19 +236,19 @@ class CassandraStorage {
                     return;
                 }
 
-                const tableName = md.name;
+                const { name } = md;
 
-                notifier.emit('tableExists', tableName);
+                notifier.notifyExistence(name);
 
-                const tableSchema = new JSONSchema(this._tableSchemas[tableName]);
+                const schema = new JSONSchema(schemas[name]);
 
-                if (!tableSchema.compareColumnsSetWithMetadata(md)) {
-                    notifier.emit('columnsMismatch', tableName);
+                if (!schema.compareColumnsSetWithMetadata(md)) {
+                    notifier.notifyStructureMismatch(name);
                 }
 
-                tableSchema.diffColumnTypesWithMetadata(md).forEach(mismatch => {
-                    const mismatchDetails = [ tableName, mismatch.colName, mismatch.realType, mismatch.schemaType ];
-                    notifier.emit('columnTypesMismatch', ...mismatchDetails);
+                schema.diffColumnTypesWithMetadata(md).forEach(mismatch => {
+                    const mismatchDetails = [ name, mismatch.colName, mismatch.realType, mismatch.schemaType ];
+                    notifier.notifyTypesMismatch(...mismatchDetails);
                 });
             });
         });

@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const MetadataBuilder = require('../dataBuilders/MetadataBuilder');
+const MetadataBuilder = require('../dataBuilders/TableMetadataBuilder');
 
 const JSONSchema = require('../../../cassandra/lib/JSONSchema');
 
