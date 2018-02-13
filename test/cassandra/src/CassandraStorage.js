@@ -309,10 +309,10 @@ describe('Cassandra Storage Provider', () => {
         asyncAssertion(() => {
             assert.equal(eventEmitter.emit.callCount, 3, 'Number of times event was emitted');
 
-            const [ event, tableName, colName, realType, schemaType ] = eventEmitter.emit.secondCall.args;
+            const [ event, tableName, propName, realType, schemaType ] = eventEmitter.emit.secondCall.args;
             assert.equal(event, 'columnTypesMismatch');
             assert.equal(tableName, 'testTable');
-            assert.equal(colName, 'col2');
+            assert.equal(propName, 'col2');
             assert.equal(realType, 'text');
             assert.equal(schemaType, 'int');
 

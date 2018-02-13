@@ -28,44 +28,44 @@ class Metadata {
 
     /**
      * Returns true if column exists in this metadata
-     * @param {string} colName
+     * @param {string} propName
      * @returns {boolean}
      */
-    columnExists(colName) {
+    columnExists(propName) {
         throw new TypeError('columnExists() is not implemented');
     }
 
-    _getTypeDescription(colName) {
+    _getTypeDescription(propName) {
         throw new TypeError('_getTypeDescription() is not implemented');
     }
 
     /**
      * Returns true if JSON schema is the same as metadata of real schema (contains same members)
      * @param {JSONSchema} jsonSchema
-     * @param {Array<string>} structureMembers Array of member names of structure (table or UDT)
+     * @param {Array<string>} metadataProps Array of member names of structure (table or UDT)
      * @returns {boolean}
      * @private
      */
-    _sameStructure(jsonSchema, structureMembers) {
-        const schemaColumns = Object.keys(jsonSchema.getColumns()).map(col => col.toLowerCase());
+    _sameStructure(jsonSchema, metadataProps) {
+        const schemaProps = Object.keys(jsonSchema.getProperties()).map(prop => prop.toLowerCase());
 
-        if (schemaColumns.length !== structureMembers.length) {
+        if (schemaProps.length !== metadataProps.length) {
             return false;
         }
 
-        return schemaColumns.every(col => structureMembers.includes(col));
+        return schemaProps.every(prop => metadataProps.includes(prop));
     }
 
     /**
      * Returns full name of type with its types if type is complex
-     * @param {string} colName Column name
+     * @param {string} propName Field or column name
      * @returns {string}
      */
-    getColumnFullTypeName(colName) {
-        colName = colName.toLowerCase();
+    getFullTypeName(propName) {
+        propName = propName.toLowerCase();
         
-        const type = this._getTypeDescription(colName);
-        let name = this._complexType(colName) || this._customType(colName) || this._simpleType(colName);
+        const type = this._getTypeDescription(propName);
+        let name = this._complexType(propName) || this._customType(propName) || this._simpleType(propName);
 
         if (type.options && type.options.frozen) {
             name = `frozen<${name}>`;
@@ -74,8 +74,14 @@ class Metadata {
         return name;
     }
 
-    _complexType(colName) {
-        const type = this._getTypeDescription(colName);
+    /**
+     * Returns full definition of property type if it's complex type
+     * @param {string} propName Column or field name
+     * @returns {string}
+     * @private
+     */
+    _complexType(propName) {
+        const type = this._getTypeDescription(propName);
 
         if (type.info && type.info.length) {
             const name = Metadata.getDataTypeNameByCode(type.code);
@@ -92,8 +98,14 @@ class Metadata {
         return '';
     }
 
-    _customType(colName) {
-        const type = this._getTypeDescription(colName);
+    /**
+     * Returns custom type name if property is UDT
+     * @param {string} propName Column or field name
+     * @returns {string}
+     * @private
+     */
+    _customType(propName) {
+        const type = this._getTypeDescription(propName);
 
         if (type.info && type.info.name) {
             return type.info.name;
@@ -102,8 +114,14 @@ class Metadata {
         return '';
     }
 
-    _simpleType(colName) {
-        const type = this._getTypeDescription(colName);
+    /**
+     * Returns just type name if property field is simple type
+     * @param {string} propName Column or field name
+     * @returns {string}
+     * @private
+     */
+    _simpleType(propName) {
+        const type = this._getTypeDescription(propName);
         return Metadata.getDataTypeNameByCode(type.code);
     }
 

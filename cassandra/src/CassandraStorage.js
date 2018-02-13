@@ -242,12 +242,12 @@ class CassandraStorage {
 
                 const schema = new JSONSchema(schemas[name]);
 
-                if (!schema.compareColumnsSetWithMetadata(md)) {
+                if (!schema.comparePropertySetWithMetadata(md)) {
                     notifier.notifyStructureMismatch(name);
                 }
 
-                schema.diffColumnTypesWithMetadata(md).forEach(mismatch => {
-                    const mismatchDetails = [ name, mismatch.colName, mismatch.realType, mismatch.schemaType ];
+                schema.diffPropertyTypesWithMetadata(md).forEach(mismatch => {
+                    const mismatchDetails = [ name, mismatch.propName, mismatch.realType, mismatch.schemaType ];
                     notifier.notifyTypesMismatch(...mismatchDetails);
                 });
             });

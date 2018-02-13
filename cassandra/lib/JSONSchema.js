@@ -213,29 +213,29 @@ class JSONSchema {
      * @param metadataDescriptor cassandra-driver metadata object
      * @returns {boolean}
      */
-    compareColumnsSetWithMetadata(metadataDescriptor) {
+    comparePropertySetWithMetadata(metadataDescriptor) {
         return Metadata.create(metadataDescriptor).isSameMembersSchema(this);
     }
 
     /**
-     * Returns array of column types mismatches in schema with metadata
+     * Returns array of property types mismatches in schema with metadata
      * @param metadataDescriptor cassandra-driver metadata object
      * @returns {Array}
      */
-    diffColumnTypesWithMetadata(metadataDescriptor) {
+    diffPropertyTypesWithMetadata(metadataDescriptor) {
         const mismatches = [];
         const metadata = Metadata.create(metadataDescriptor);
 
-        const columns = this.getColumns();
+        const props = this.getProperties();
 
-        for (let colName in columns) {
-            if (metadata.columnExists(colName)) {
-                const realType = metadata.getColumnFullTypeName(colName);
-                const schemaType = CassandraUtils.replaceTypeAliases(columns[colName].replace(/\s/g, ''));
+        for (let propName in props) {
+            if (metadata.columnExists(propName)) {
+                const realType = metadata.getFullTypeName(propName);
+                const schemaType = CassandraUtils.replaceTypeAliases(props[propName].replace(/\s/g, ''));
 
                 if (realType !== schemaType) {
                     mismatches.push({
-                        colName,
+                        propName,
                         realType,
                         schemaType
                     });
@@ -250,7 +250,7 @@ class JSONSchema {
      * Returns schema properties and values which are not reserved
      * @returns {Object}
      */
-    getColumns() {
+    getProperties() {
         const cols = {};
 
         for (let prop in this._schema) {

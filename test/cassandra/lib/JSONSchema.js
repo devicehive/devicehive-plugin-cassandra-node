@@ -137,7 +137,7 @@ describe('JSON Schema', () => {
         });
         const metadata = new MetadataBuilder().withColumn('id').build();
 
-        assert.equal(schema.compareColumnsSetWithMetadata(metadata), true);
+        assert.equal(schema.comparePropertySetWithMetadata(metadata), true);
     });
 
     it('Should return false if schema columns set is NOT same as columns in given metadata object', () => {
@@ -147,7 +147,7 @@ describe('JSON Schema', () => {
         });
         const metadata = new MetadataBuilder().withColumn('col1').build();
 
-        assert.equal(schema.compareColumnsSetWithMetadata(metadata), false);
+        assert.equal(schema.comparePropertySetWithMetadata(metadata), false);
     });
 
     it('Should return array of mismatches in case some column types of schema do not match columns in metadata', () => {
@@ -158,16 +158,16 @@ describe('JSON Schema', () => {
         });
         const metadata = new MetadataBuilder().withTextColumn('id').withIntColumn('col1').build();
 
-        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
 
         const expected = [
             {
-                colName: 'id',
+                propName: 'id',
                 realType: 'text',
                 schemaType: 'int'
             },
             {
-                colName: 'Col1',
+                propName: 'Col1',
                 realType: 'int',
                 schemaType: 'text'
             }
@@ -185,7 +185,7 @@ describe('JSON Schema', () => {
         mdBuilder.withColumnNestedTextType('col1').withColumnNestedTextType('col1');
         const metadata = mdBuilder.build();
 
-        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
 
         assert.equal(mismatches.length, 0);
     });
@@ -201,7 +201,7 @@ describe('JSON Schema', () => {
         mdBuilder.withColumnTypeName('col1', 'my_type');
         const metadata = mdBuilder.build();
 
-        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
 
         assert.equal(mismatches.length, 0);
     });
@@ -217,7 +217,7 @@ describe('JSON Schema', () => {
         mdBuilder.withColumnTypeName('col1', 'my_type').withColumnTypeOption('col1', 'frozen', true);
         const metadata = mdBuilder.build();
 
-        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
 
         assert.equal(mismatches.length, 1);
     });
@@ -233,7 +233,7 @@ describe('JSON Schema', () => {
         mdBuilder.withColumnTypeName('col1', 'another_type');
         const metadata = mdBuilder.build();
 
-        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
 
         assert.equal(mismatches.length, 1);
     });
@@ -246,7 +246,7 @@ describe('JSON Schema', () => {
         const mdBuilder = new MetadataBuilder().withTextColumn('field1');
         const metadata = mdBuilder.build();
 
-        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
 
         assert.equal(mismatches.length, 0);
     });
