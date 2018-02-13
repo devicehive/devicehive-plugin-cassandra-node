@@ -151,15 +151,12 @@ describe('JSON Schema', () => {
     });
 
     it('Should return array of mismatches in case some column types of schema do not match columns in metadata', () => {
-        const TEXT_TYPE_CODE = 10;
-        const INT_TYPE_CODE = 9;
-
         const schema = new JSONSchema({
             id: 'int',
             Col1: 'text',
             __primaryKey__: [ 'id' ]
         });
-        const metadata = new MetadataBuilder().withColumn('id', TEXT_TYPE_CODE).withColumn('col1', INT_TYPE_CODE).build();
+        const metadata = new MetadataBuilder().withTextColumn('id').withIntColumn('col1').build();
 
         const mismatches = schema.diffColumnTypesWithMetadata(metadata);
 
@@ -179,17 +176,13 @@ describe('JSON Schema', () => {
     });
 
     it('Should NOT return any mismatches in case column types are map with same key and value types', () => {
-        const MAP_TYPE_CODE = 33;
-        const TEXT_TYPE_CODE = 10;
-        const INT_TYPE_CODE = 9;
-
         const schema = new JSONSchema({
             id: 'int',
             col1: 'map<text,text>',
             __primaryKey__: [ 'id' ]
         });
-        const mdBuilder = new MetadataBuilder().withColumn('id', INT_TYPE_CODE).withColumn('col1', MAP_TYPE_CODE);
-        mdBuilder.withColumnNestedType('col1', TEXT_TYPE_CODE).withColumnNestedType('col1', TEXT_TYPE_CODE);
+        const mdBuilder = new MetadataBuilder().withIntColumn('id').withMapColumn('col1');
+        mdBuilder.withColumnNestedTextType('col1').withColumnNestedTextType('col1');
         const metadata = mdBuilder.build();
 
         const mismatches = schema.diffColumnTypesWithMetadata(metadata);
@@ -198,16 +191,13 @@ describe('JSON Schema', () => {
     });
 
     it('Should NOT return any mismatches in case columns are the same user defined type', () => {
-        const UDT_TYPE_CODE = 48;
-        const INT_TYPE_CODE = 9;
-
         const schema = new JSONSchema({
             id: 'int',
             col1: 'my_type',
             __primaryKey__: [ 'id' ]
         });
 
-        const mdBuilder = new MetadataBuilder().withColumn('id', INT_TYPE_CODE).withColumn('col1', UDT_TYPE_CODE);
+        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
         mdBuilder.withColumnTypeName('col1', 'my_type');
         const metadata = mdBuilder.build();
 
@@ -217,16 +207,13 @@ describe('JSON Schema', () => {
     });
 
     it('Should return mismatches in case columns are the same user defined type but in metadata type is frozen', () => {
-        const UDT_TYPE_CODE = 48;
-        const INT_TYPE_CODE = 9;
-
         const schema = new JSONSchema({
             id: 'int',
             col1: 'my_type',
             __primaryKey__: [ 'id' ]
         });
 
-        const mdBuilder = new MetadataBuilder().withColumn('id', INT_TYPE_CODE).withColumn('col1', UDT_TYPE_CODE);
+        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
         mdBuilder.withColumnTypeName('col1', 'my_type').withColumnTypeOption('col1', 'frozen', true);
         const metadata = mdBuilder.build();
 
@@ -236,16 +223,13 @@ describe('JSON Schema', () => {
     });
 
     it('Should return mismatches in case columns are NOT the same user defined type', () => {
-        const UDT_TYPE_CODE = 48;
-        const INT_TYPE_CODE = 9;
-
         const schema = new JSONSchema({
             id: 'int',
             col1: 'my_type',
             __primaryKey__: [ 'id' ]
         });
 
-        const mdBuilder = new MetadataBuilder().withColumn('id', INT_TYPE_CODE).withColumn('col1', UDT_TYPE_CODE);
+        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
         mdBuilder.withColumnTypeName('col1', 'another_type');
         const metadata = mdBuilder.build();
 
@@ -255,13 +239,11 @@ describe('JSON Schema', () => {
     });
 
     it('Should treat varchar as text in basic types and return 0 mismatches', () => {
-        const TEXT_TYPE_CODE = 10;
-
         const schema = new JSONSchema({
             field1: 'varchar'
         });
 
-        const mdBuilder = new MetadataBuilder().withColumn('field1', TEXT_TYPE_CODE);
+        const mdBuilder = new MetadataBuilder().withTextColumn('field1');
         const metadata = mdBuilder.build();
 
         const mismatches = schema.diffColumnTypesWithMetadata(metadata);

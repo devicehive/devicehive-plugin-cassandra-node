@@ -13,6 +13,11 @@ class TableMetadataBuilder extends DataBuilder {
         return this;
     }
 
+    withColumnNestedTextType(columnName) {
+        const TEXT_TYPE_CODE = 10;
+        return this.withColumnNestedType(columnName, TEXT_TYPE_CODE);
+    }
+
     withColumnNestedType(columnName, typeCode) {
         const type = this.obj.columnsByName[columnName].type;
 
@@ -28,6 +33,16 @@ class TableMetadataBuilder extends DataBuilder {
     withColumnTypeName(columnName, typeName) {
         this.obj.columnsByName[columnName].type.info.name = typeName;
         return this;
+    }
+
+    withMapColumn(name) {
+        const MAP_TYPE_CODE = 33;
+        return this.withColumn(name, MAP_TYPE_CODE);
+    }
+
+    withUDTColumn(name) {
+        const UDT_TYPE_CODE = 48;
+        return this.withColumn(name, UDT_TYPE_CODE);
     }
 
     withTextColumn(name) {
