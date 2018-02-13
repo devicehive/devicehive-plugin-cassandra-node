@@ -93,13 +93,12 @@ class CassandraPluginService extends PluginService {
     _schemaComparison(cassandra) {
         const tableComparisonNotifier = cassandra.compareTableSchemas();
         const udtComparisonNotifier = cassandra.compareUDTSchemas();
+        const errorMsg = 'Schema mismatch, please check your JSON schemas of UDTs, tables and actual schemas in Cassandra';
 
         const tableComparison = new Promise((resolve, reject) => {
             let ok = true;
 
-            tableComparisonNotifier.on('tableExists', tableName => {
-                console.log(`TABLE ${tableName}: Table already exists`);
-            }).on('columnsMismatch', tableName => {
+            tableComparisonNotifier.on('columnsMismatch', tableName => {
                 console.log(`TABLE ${tableName}: Mismatched schema`);
                 ok = false;
             }).on('columnTypesMismatch', (tableName, colName, realType, schemaType) => {
@@ -109,7 +108,7 @@ class CassandraPluginService extends PluginService {
                 if (ok) {
                     resolve();
                 } else {
-                    reject(SchemaError.tableSchemaMismatch());
+                    reject(new Error(errorMsg));
                 }
             });
         });
@@ -117,9 +116,7 @@ class CassandraPluginService extends PluginService {
         const udtComparison = new Promise((resolve, reject) => {
             let ok = true;
 
-            udtComparisonNotifier.on('customTypeExists', udtName => {
-                console.log(`UDT ${udtName}: UDT already exists`);
-            }).on('fieldsMismatch', udtName => {
+            udtComparisonNotifier.on('fieldsMismatch', udtName => {
                 console.log(`UDT ${udtName}: Mismatched schema`);
                 ok = false;
             }).on('fieldTypesMismatch', (udtName, fieldName, realType, schemaType) => {
@@ -129,12 +126,12 @@ class CassandraPluginService extends PluginService {
                 if (ok) {
                     resolve();
                 } else {
-                    reject(SchemaError.udtSchemaMismatch());
+                    reject(new Error(errorMsg));
                 }
             });
         });
 
-        return Promise.all([ tableComparison, udtComparison ]);
+        return Promise.all([ tableComparison, udtComparison ]).then(() => cassandra);
     }
 }
 

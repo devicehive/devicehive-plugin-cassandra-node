@@ -138,7 +138,7 @@ class JSONSchema {
                     const udtSchema = new JSONSchema(this._schema[prop]);
                     filteredObj[prop] = udtSchema.filterData(obj[prop]);
                 } else {
-                    filteredObj[prop] = JSONSchema.cassandraStringTypeOrDefault(this._schema[prop], obj[prop]);
+                    filteredObj[prop] = CassandraUtils.cassandraStringTypeOrDefault(this._schema[prop], obj[prop]);
                 }
             }
         }
@@ -187,22 +187,6 @@ class JSONSchema {
     }
 
     /**
-     * Cast to string if Cassandra column is text, varchar or ascii type
-     * @param {string} type
-     * @param {any} val
-     * @returns {string | any}
-     */
-    static cassandraStringTypeOrDefault(type, val = null) {
-        const stringTypes = [ 'text', 'varchar', 'ascii' ];
-
-        if (stringTypes.includes(type) && val !== null) {
-            return Utils.isObject(val) ? JSON.stringify(val) : val.toString();
-        }
-
-        return val;
-    }
-
-    /**
      * Replaces current user type references in column definitions with real objects of user type definitions
      * @param {object} types
      * @returns {JSONSchema}
@@ -247,7 +231,7 @@ class JSONSchema {
         for (let colName in columns) {
             if (metadata.columnExists(colName)) {
                 const realType = metadata.getColumnFullTypeName(colName);
-                const schemaType = columns[colName].replace(/\s/g, '');
+                const schemaType = CassandraUtils.replaceTypeAliases(columns[colName].replace(/\s/g, ''));
 
                 if (realType !== schemaType) {
                     mismatches.push({

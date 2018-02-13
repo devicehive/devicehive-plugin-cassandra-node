@@ -82,24 +82,6 @@ describe('JSON Schema', () => {
         assert.equal(jsonSchema.filterData(null), null);
     });
 
-    it('Should cast value to string if Cassandra type is text, ascii or varchar', () => {
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', 123), '123');
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('ascii', 123), '123');
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('varchar', 123), '123');
-    });
-
-    it('Should stringify to JSON object if Cassandra type is text, ascii or varchar', () => {
-        const obj = { prop: 'test' };
-        const stringified = JSON.stringify(obj);
-
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', obj), stringified);
-    });
-
-    it('Should return null if second argument (value) for cassandraStringTypeOrDefault is null or undefined', () => {
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text'), null);
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', null), null);
-    });
-
     it('Should return filtered object consisted of primary and clustered keys only', () => {
         const schema = new JSONSchema({
             id: 'int',
@@ -270,5 +252,20 @@ describe('JSON Schema', () => {
         const mismatches = schema.diffColumnTypesWithMetadata(metadata);
 
         assert.equal(mismatches.length, 1);
+    });
+
+    it('Should treat varchar as text in basic types and return 0 mismatches', () => {
+        const TEXT_TYPE_CODE = 10;
+
+        const schema = new JSONSchema({
+            field1: 'varchar'
+        });
+
+        const mdBuilder = new MetadataBuilder().withColumn('field1', TEXT_TYPE_CODE);
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffColumnTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 0);
     });
 });

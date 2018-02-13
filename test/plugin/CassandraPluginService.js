@@ -22,7 +22,8 @@ describe('Plugin', () => {
         cassandra.insertCommandUpdate = sinon.stub().returns(Promise.resolve({}));
         cassandra.insertNotification = sinon.stub().returns(Promise.resolve({}));
         cassandra.checkSchemasExistence = sinon.stub().returns(cassandra).callsFake(cb => cb(true));
-        cassandra.compareTableSchemas = sinon.stub().returns({
+
+        const notifier = {
             on(event, handler) {
                 if (event === 'done') {
                     handler();
@@ -30,7 +31,9 @@ describe('Plugin', () => {
 
                 return this;
             }
-        });
+        };
+        cassandra.compareTableSchemas = sinon.stub().returns(notifier);
+        cassandra.compareUDTSchemas = sinon.stub().returns(notifier);
 
         sinon.stub(cassandraStorage, 'connect').returns(Promise.resolve(cassandra));
 
