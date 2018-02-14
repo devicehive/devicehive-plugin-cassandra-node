@@ -128,4 +128,14 @@ describe('Table Schema Builder', () => {
         const query = builder.build();
         assert.equal(query, expectedQuery);
     });
+
+    it('Should build DROP TABLE query', () => {
+        const query = new TableSchemaBuilder().dropTable('my_table').build();
+        assert.equal(query, 'DROP TABLE my_table');
+    });
+
+    it('Should build DROP TABLE query with IF EXISTS', () => {
+        const query = new TableSchemaBuilder().dropTable('my_table').ifExists().build();
+        assert.equal(query, 'DROP TABLE IF EXISTS my_table');
+    });
 });

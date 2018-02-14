@@ -2,13 +2,18 @@ const Utils = require('./Utils');
 
 class BaseSchemaBuilder {
     static get CREATE_QUERY_TYPE() { return 0; }
+    static get DROP_QUERY_TYPE() { return 1; }
+
+    static get TYPE_STRUCTURE() { return 'TYPE'; }
+    static get TABLE_STRUCTURE() { return 'TABLE'; }
 
     constructor() {
-        this._query = '';
+        this._queryString = '';
         this._queryType = null;
         this._name = '';
         this._definition = '';
-        this._ifNotExists = '';
+        this._ifCondition = '';
+        this._structureType = '';
     }
 
     /**
@@ -25,7 +30,7 @@ class BaseSchemaBuilder {
      * @returns {string}
      */
     build() {
-        return `${this._query} ${this._ifNotExists}${this._name}${this._definition}`;
+        return `${this._queryString} ${this._ifCondition}${this._name}${this._definition}`;
     }
 
     /**
@@ -43,24 +48,62 @@ class BaseSchemaBuilder {
      * @returns {BaseSchemaBuilder}
      */
     ifNotExists() {
-        if(this._queryType === BaseSchemaBuilder.CREATE_QUERY_TYPE) {
-            // @TODO Remove this variable, use append to this._query and appropriate flag for IF NOT EXISTS
-            this._ifNotExists = 'IF NOT EXISTS ';
+        if (this._queryType === BaseSchemaBuilder.CREATE_QUERY_TYPE) {
+            // @TODO Remove this variable, use append to this._queryString and appropriate flag for IF NOT EXISTS
+            this._ifCondition = 'IF NOT EXISTS ';
         }
 
         return this;
     }
 
     /**
-     * Specifies type of query
-     * @param {string} structureType
-     * @param [name = '']
+     * Drop structure only if it exists
      * @returns {BaseSchemaBuilder}
      */
-    _create(structureType, name = '') {
-        this._queryType = BaseSchemaBuilder.CREATE_QUERY_TYPE;        
-        this._query = `CREATE ${structureType}`;
-        
+    ifExists() {
+        if (this._queryType === BaseSchemaBuilder.DROP_QUERY_TYPE) {
+            this._ifCondition = 'IF EXISTS ';
+        }
+
+        return this;
+    }
+
+    /**
+     * Specifies create type of query
+     * @param [name = '']
+     * @returns {BaseSchemaBuilder}
+     * @private
+     */
+    _create(name = '') {
+        return this._query(BaseSchemaBuilder.CREATE_QUERY_TYPE, name);
+    }
+
+    /**
+     * Specifies drop type of query
+     * @param [name = '']
+     * @returns {BaseSchemaBuilder}
+     * @private
+     */
+    _drop(name = '') {
+        return this._query(BaseSchemaBuilder.DROP_QUERY_TYPE, name);
+    }
+
+    /**
+     * Specify query with given type
+     * @param type
+     * @param name
+     * @returns {BaseSchemaBuilder}
+     * @private
+     */
+    _query(type, name = '') {
+        const queryTypes = {
+            [BaseSchemaBuilder.CREATE_QUERY_TYPE]: 'CREATE',
+            [BaseSchemaBuilder.DROP_QUERY_TYPE]: 'DROP'
+        };
+
+        this._queryType = type;
+        this._queryString = `${queryTypes[type]} ${this._structureType}`;
+
         return Utils.isEmpty(name) ? this : this.withName(name);
     }
 }

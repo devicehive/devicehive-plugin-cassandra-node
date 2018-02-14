@@ -26,4 +26,14 @@ describe('User Defined Type Builder', () => {
 
         assert.equal(query, 'CREATE TYPE IF NOT EXISTS test(prop1 int)');
     });
+
+    it('Should build DROP TYPE query', () => {
+        const query = new UDTSchemaBuilder().dropType('test').build();
+        assert.equal(query, 'DROP TYPE test');
+    });
+
+    it('Should build DROP TABLE query with IF EXISTS', () => {
+        const query = new UDTSchemaBuilder().dropType('test').ifExists().build();
+        assert.equal(query, 'DROP TYPE IF EXISTS test');
+    });
 });

@@ -2,13 +2,27 @@ const JSONSchema = require('./JSONSchema');
 const BaseSchemaBuilder = require('./BaseSchemaBuilder');
 
 class UDTSchemaBuilder extends BaseSchemaBuilder {
+    constructor() {
+        super();
+        this._structureType = UDTSchemaBuilder.TYPE_STRUCTURE;
+    }
+
     /**
-     * Specifies type of query
+     * Specifies create type of query
      * @param [typeName = '']
      * @returns {UDTSchemaBuilder}
      */
     createType(typeName = '') {
-        return this._create('TYPE', typeName);
+        return this._create(typeName);
+    }
+
+    /**
+     * Specifies drop type of query
+     * @param [typeName = '']
+     * @returns {UDTSchemaBuilder}
+     */
+    dropType(typeName) {
+        return this._drop(typeName);
     }
 
     /**
