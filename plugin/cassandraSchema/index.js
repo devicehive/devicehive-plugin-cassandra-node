@@ -16,12 +16,16 @@ createSchema().then(() => {
 });
 
 function createSchema() {
+    const schemas = {
+        udt: cassandraUDTs,
+        tables: cassandraTables.tables
+    };
+    let schemaCreator;
+
     return CassandraStorage.connect(cassandraConfig).then(cassandra => {
-        return new SchemaCreator(cassandra).create({
-            udt: cassandraUDTs,
-            tables: cassandraTables.tables
-        });
-    });
+        schemaCreator = new SchemaCreator(cassandra);
+        return schemaCreator.dropBeforeCreate(schemas);
+    }).then(() => schemaCreator.create(schemas));
 }
 
 function exitIfInvalid(schemas) {

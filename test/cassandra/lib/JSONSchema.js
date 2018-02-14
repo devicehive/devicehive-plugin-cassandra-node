@@ -250,4 +250,13 @@ describe('JSON Schema', () => {
 
         assert.equal(mismatches.length, 0);
     });
+
+    it('Should return false for shouldBeDropped() if __dropIfExists__ is absent in schema', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            __primaryKey__: [ 'id' ]
+        });
+
+        assert.strictEqual(schema.shouldBeDropped(), false);
+    });
 });

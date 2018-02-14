@@ -454,6 +454,59 @@ describe('Cassandra Storage Provider', () => {
             done();
         });
     });
+
+    it('Should drop tables which defined in schema with __dropIfExists__ as true', () => {
+        const mockCassandraClient = new MockCassandraClient();
+        const execSpy = mockCassandraClient.execute;
+        const cassandra = new CassandraStorage(mockCassandraClient);
+        const schemas = {
+            test: {
+                id: 'int',
+                __primaryKey__: [ 'id' ]
+            },
+
+            dropThis: {
+                id: 'int',
+                __primaryKey__: [ 'id' ],
+                __dropIfExists__: true
+            },
+
+            shouldBeDropped: {
+                id: 'int',
+                __primaryKey__: [ 'id' ],
+                __dropIfExists__: true
+            }
+        };
+
+        cassandra.dropTableSchemas(schemas);
+
+        assert.equal(execSpy.callCount, 2);
+    });
+
+    it('Should drop types which defined in schema with __dropIfExists__ as true', () => {
+        const mockCassandraClient = new MockCassandraClient();
+        const execSpy = mockCassandraClient.execute;
+        const cassandra = new CassandraStorage(mockCassandraClient);
+        const schemas = {
+            test: {
+                id: 'int'
+            },
+
+            dropThis: {
+                id: 'int',
+                __dropIfExists__: true
+            },
+
+            shouldBeDropped: {
+                id: 'int',
+                __dropIfExists__: true
+            }
+        };
+
+        cassandra.dropTypeSchemas(schemas);
+
+        assert.equal(execSpy.callCount, 2);
+    });
 });
 
 function asyncAssertion(callback) {
