@@ -7,6 +7,7 @@ class JSONSchema {
     static get CLUSTERED_KEY() { return '__clusteredKey__'; }
     static get ORDER() { return '__order__'; }
     static get OPTIONS() { return '__options__'; }
+    static get DROP_IF_EXISTS() { return '__dropIfExists__'; }
 
     constructor(schema = {}) {
         this._schema = Utils.copy(schema);
@@ -263,6 +264,15 @@ class JSONSchema {
     }
 
     /**
+     * Returns true if schema contains __dropIfExists__ set in true
+     * @returns {boolean}
+     */
+    shouldBeDropped() {
+        const dropIfExists = this._schema[JSONSchema.DROP_IF_EXISTS];
+        return !!Utils.booleanOrDefault(dropIfExists);
+    }
+
+    /**
      * Returns true if property name is not specified as reserved
      * @param propName
      * @returns {boolean}
@@ -272,7 +282,8 @@ class JSONSchema {
             JSONSchema.PRIMARY_KEY,
             JSONSchema.CLUSTERED_KEY,
             JSONSchema.ORDER,
-            JSONSchema.OPTIONS
+            JSONSchema.OPTIONS,
+            JSONSchema.DROP_IF_EXISTS
         ];
 
         return !reservedProps.includes(propName);

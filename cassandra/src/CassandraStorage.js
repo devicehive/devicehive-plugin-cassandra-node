@@ -1,5 +1,3 @@
-const EventEmitter = require('events');
-
 const Utils = require('../lib/Utils');
 const JSONSchema = require('../lib/JSONSchema');
 const CQLBuilder = require('../lib/CQLBuilder');
@@ -59,6 +57,28 @@ class CassandraStorage {
                 if (Utils.isNotEmpty(query)) {
                     execution.push(this._cassandra.execute(query))
                 }
+            }
+        }
+
+        return execution.length ? Promise.all(execution) : Promise.resolve(null);
+    }
+
+    dropTableSchemas(tables) {
+        return this._dropSchemas(CQLBuilder.dropTable().ifExists(), tables);
+    }
+
+    dropTypeSchemas(types) {
+        return this._dropSchemas(CQLBuilder.dropType().ifExists(), types);
+    }
+
+    _dropSchemas(queryBuilder, schemas) {
+        const execution = [];
+
+        for (let name in schemas) {
+            const schema = new JSONSchema(schemas[name]);
+            if (schema.shouldBeDropped()) {
+                const query = queryBuilder.withName(name).build();
+                execution.push(this._cassandra.execute(query));
             }
         }
 

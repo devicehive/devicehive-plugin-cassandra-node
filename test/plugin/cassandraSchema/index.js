@@ -14,7 +14,9 @@ describe('Cassandra schemas creation', () => {
         cassandra.createTableSchemas = sinon.stub().returns(Promise.resolve({}));
         cassandra.createUDTSchemas = sinon.stub().returns(Promise.resolve({}));
         cassandra.setTableSchemas = sinon.stub().returns(cassandra);
-        cassandra.setUDTSchemas = sinon.stub().returns(cassandra);
+        cassandra.setUDTSchemas = sinon.stub().returns(cassandra)
+        cassandra.dropTypeSchemas = sinon.stub().returns(Promise.resolve({}));
+        cassandra.dropTableSchemas = sinon.stub().returns(Promise.resolve({}));
 
         const notifier = {
             on(event, handler) {

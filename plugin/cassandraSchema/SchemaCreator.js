@@ -14,6 +14,10 @@ class SchemaCreator {
             .then(() => this._client.createTableSchemas(tables));
     }
 
+    dropBeforeCreate({ udt, tables }) {
+        return this._client.dropTableSchemas(tables).then(() => this._client.dropTypeSchemas(udt));
+    }
+
     _resolveSchemaComparison(tableComparisonNotifier, udtComparisonNotifier) {
         const tableComparison = new Promise((resolve, reject) => {
             let ok = true;
