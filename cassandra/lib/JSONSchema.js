@@ -181,8 +181,8 @@ class JSONSchema {
     }
 
     isKey(prop) {
-        const primaryKeys = this._schema[JSONSchema.PRIMARY_KEY];
-        const clusteredKeys = this._schema[JSONSchema.CLUSTERED_KEY];
+        const primaryKeys = this._schema[JSONSchema.PRIMARY_KEY] || [];
+        const clusteredKeys = this._schema[JSONSchema.CLUSTERED_KEY] || [];
 
         return primaryKeys.includes(prop) || clusteredKeys.includes(prop);
     }
