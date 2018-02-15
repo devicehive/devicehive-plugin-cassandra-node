@@ -136,7 +136,7 @@ describe('Cassandra Config', () => {
                 'CONNECT_TIMEOUT': '5000'
             },
             'CONTACT_POINTS': '127.0.0.1, 0.0.0.0',
-            'TEST_PROPERTY': 't,e,s,t'
+            'TEST_PROPERTY': 't,e,s,t,'
         };
 
         const expectedConf = {

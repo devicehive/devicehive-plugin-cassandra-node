@@ -1,9 +1,7 @@
 const PluginService = require('./PluginService');
+const cassandraInit = require('./cassandraInit');
 
 const cassandraConfig = require(`./config`).cassandra;
-const cassandraTables = require('../cassandraSchemas/cassandra-tables');
-const cassandraUDTs = require('../cassandraSchemas/cassandra-user-types');
-const CassandraStorage = require('../cassandra');
 
 /**
  * Cassandra Plugin main class
@@ -45,49 +43,7 @@ class CassandraPluginService extends PluginService {
     }
 
     initCassandra() {
-        return CassandraStorage.connect(cassandraConfig).then(cassandra => {
-            cassandra.setUDTSchemas(cassandraUDTs)
-                .setTableSchemas(cassandraTables.tables)
-                .assignTablesToCommands(...cassandraTables.commandTables)
-                .assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables)
-                .assignTablesToNotifications(...cassandraTables.notificationTables);
-
-            return this.ensureSchemasExist(cassandra);
-        });
-    }
-
-    ensureSchemasExist(cassandra) {
-        return new Promise((resolve, reject) => {
-            const interval = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL) || 0;
-            const schemaCheck = this._createSchemaChecking(cassandra);
-            const checking = setInterval(() => {
-                schemaCheck().then(ok => {
-                    if (ok) {
-                        clearInterval(checking);
-                        resolve(cassandra);
-                    }
-                }).catch(err => {
-                    clearInterval(checking);
-                    reject(err);
-                });
-            }, interval);
-        });
-    }
-
-    _createSchemaChecking(cassandra) {
-        let checkNumber = 0;
-        const checksThreshold = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT) || 0;
-        return () => {
-            return new Promise((resolve, reject) => {
-                if (checkNumber >= checksThreshold) {
-                    reject(new Error('CASSANDRA SCHEMAS HAVE NOT BEEN CREATED'));
-                    return;
-                }
-
-                checkNumber++;
-                cassandra.checkSchemasExistence(resolve);
-            });
-        };
+        return cassandraInit();
     }
 }
 

@@ -1,6 +1,8 @@
 const assert = require('assert');
 const sinon = require('sinon');
 
+const TableMetadataBuilder = require('../dataBuilders/TableMetadataBuilder');
+const UDTMetadataBuilder = require('../dataBuilders/UDTMetadataBuilder');
 const TablesBuilder = require('../dataBuilders/TablesBuilder');
 const CassandraStorage = require('../../../cassandra/src/CassandraStorage');
 
@@ -233,6 +235,277 @@ describe('Cassandra Storage Provider', () => {
             assert.equal(callback.firstCall.args[0], false);
             done();
         });
+    });
+
+    it('Should emit "tableExists" event if table already exists', done => {
+        const metadata = new TableMetadataBuilder().withName('testTable').withIntColumn('col1').build();
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(metadata));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                __primaryKey__: [ 'col1' ]
+            }
+        };
+
+        cassandra.setTableSchemas(schemas);
+        const eventEmitter = cassandra.compareTableSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 2, 'Number of times event was emitted');
+
+            const [ event, tableName ] = eventEmitter.emit.firstCall.args;
+            assert.equal(event, 'tableExists');
+            assert.equal(tableName, 'testTable');
+            done();
+        });
+    });
+
+    it('Should emit "done" event when table comparison is done', done => {
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(null));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                __primaryKey__: [ 'col1' ]
+            }
+        };
+
+        cassandra.setTableSchemas(schemas);
+        const eventEmitter = cassandra.compareTableSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 1, 'Number of times event was emitted');
+
+            const [ event ] = eventEmitter.emit.firstCall.args;
+            assert.equal(event, 'done');
+
+            done();
+        });
+    });
+
+    it('Should emit "columnTypesMismatch" event if table contains same columns as schema but different types', done => {
+        const metadata = new TableMetadataBuilder().withName('testTable').withIntColumn('col1').withTextColumn('col2').build();
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(metadata));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                col2: 'int',
+                __primaryKey__: [ 'col1' ],
+                __clusteredKey__: [ 'col2' ]
+            }
+        };
+
+        cassandra.setTableSchemas(schemas);
+        const eventEmitter = cassandra.compareTableSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 3, 'Number of times event was emitted');
+
+            const [ event, tableName, propName, realType, schemaType ] = eventEmitter.emit.secondCall.args;
+            assert.equal(event, 'columnTypesMismatch');
+            assert.equal(tableName, 'testTable');
+            assert.equal(propName, 'col2');
+            assert.equal(realType, 'text');
+            assert.equal(schemaType, 'int');
+
+            done();
+        });
+    });
+
+    it('Should emit "columnsMismatch" event if schema has columns which real table does not have', done => {
+        const metadata = new TableMetadataBuilder().withName('testTable').withIntColumn('col1').withTextColumn('col2').build();
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(metadata));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                col3: 'int',
+                __primaryKey__: [ 'col1' ],
+                __clusteredKey__: [ 'col3' ]
+            }
+        };
+
+        cassandra.setTableSchemas(schemas);
+        const eventEmitter = cassandra.compareTableSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 3, 'Number of times event was emitted');
+
+            const [ event, tableName ] = eventEmitter.emit.secondCall.args;
+            assert.equal(event, 'columnsMismatch');
+            assert.equal(tableName, 'testTable');
+
+            done();
+        });
+    });
+
+    it('Should emit "customTypeExists" event if user defined type already exists', done => {
+        const metadata = new UDTMetadataBuilder().withName('test_udt').withIntField('test_field').build();
+        MockCassandraClient.prototype.metadata.getUdt.returns(Promise.resolve(metadata));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            test_udt: {
+                test_field: 'int'
+            }
+        };
+
+        cassandra.setUDTSchemas(schemas);
+        const eventEmitter = cassandra.compareUDTSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 2, 'Number of times event was emitted');
+
+            const [ event, udtName ] = eventEmitter.emit.firstCall.args;
+            assert.equal(event, 'customTypeExists');
+            assert.equal(udtName, 'test_udt');
+            done();
+        });
+    });
+
+    it('Should emit "done" event when UDT comparison is done', done => {
+        MockCassandraClient.prototype.metadata.getUdt.returns(Promise.resolve(null));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            test_udt: {
+                test_field: 'int'
+            }
+        };
+
+        cassandra.setUDTSchemas(schemas);
+        const eventEmitter = cassandra.compareUDTSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 1, 'Number of times event was emitted');
+
+            const [ event ] = eventEmitter.emit.firstCall.args;
+            assert.equal(event, 'done');
+
+            done();
+        });
+    });
+
+    it('Should emit "fieldTypesMismatch" event if UDT contains same columns as schema but different types', done => {
+        const metadata = new UDTMetadataBuilder().withName('test_udt').withIntField('field1').withTextField('field2').build();
+        MockCassandraClient.prototype.metadata.getUdt.returns(Promise.resolve(metadata));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            test_udt: {
+                field1: 'int',
+                field2: 'int'
+            }
+        };
+
+        cassandra.setUDTSchemas(schemas);
+        const eventEmitter = cassandra.compareUDTSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 3, 'Number of times event was emitted');
+
+            const [ event, udtName, fieldName, realType, schemaType ] = eventEmitter.emit.secondCall.args;
+            assert.equal(event, 'fieldTypesMismatch');
+            assert.equal(udtName, 'test_udt');
+            assert.equal(fieldName, 'field2');
+            assert.equal(realType, 'text');
+            assert.equal(schemaType, 'int');
+
+            done();
+        });
+    });
+
+    it('Should emit "fieldsMismatch" event if schema has columns which real UDT does not have', done => {
+        const metadata = new UDTMetadataBuilder().withName('test_udt').withIntField('field1').withIntField('field2').build();
+        MockCassandraClient.prototype.metadata.getUdt.returns(Promise.resolve(metadata));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            test_udt: {
+                field1: 'int',
+                field3: 'int'
+            }
+        };
+
+        cassandra.setUDTSchemas(schemas);
+        const eventEmitter = cassandra.compareUDTSchemas();
+
+        sinon.spy(eventEmitter, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(eventEmitter.emit.callCount, 3, 'Number of times event was emitted');
+
+            const [ event, udtName ] = eventEmitter.emit.secondCall.args;
+            assert.equal(event, 'fieldsMismatch');
+            assert.equal(udtName, 'test_udt');
+
+            done();
+        });
+    });
+
+    it('Should drop tables which defined in schema with __dropIfExists__ as true', () => {
+        const mockCassandraClient = new MockCassandraClient();
+        const execSpy = mockCassandraClient.execute;
+        const cassandra = new CassandraStorage(mockCassandraClient);
+        const schemas = {
+            test: {
+                id: 'int',
+                __primaryKey__: [ 'id' ]
+            },
+
+            dropThis: {
+                id: 'int',
+                __primaryKey__: [ 'id' ],
+                __dropIfExists__: true
+            },
+
+            shouldBeDropped: {
+                id: 'int',
+                __primaryKey__: [ 'id' ],
+                __dropIfExists__: true
+            }
+        };
+
+        cassandra.dropTableSchemas(schemas);
+
+        assert.equal(execSpy.callCount, 2);
+    });
+
+    it('Should drop types which defined in schema with __dropIfExists__ as true', () => {
+        const mockCassandraClient = new MockCassandraClient();
+        const execSpy = mockCassandraClient.execute;
+        const cassandra = new CassandraStorage(mockCassandraClient);
+        const schemas = {
+            test: {
+                id: 'int'
+            },
+
+            dropThis: {
+                id: 'int',
+                __dropIfExists__: true
+            },
+
+            shouldBeDropped: {
+                id: 'int',
+                __dropIfExists__: true
+            }
+        };
+
+        cassandra.dropTypeSchemas(schemas);
+
+        assert.equal(execSpy.callCount, 2);
     });
 });
 

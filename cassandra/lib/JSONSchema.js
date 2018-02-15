@@ -1,11 +1,13 @@
 const Utils = require('./Utils');
 const CassandraUtils = require('./CassandraUtils');
+const Metadata = require('./metadata');
 
 class JSONSchema {
     static get PRIMARY_KEY() { return '__primaryKey__'; }
     static get CLUSTERED_KEY() { return '__clusteredKey__'; }
     static get ORDER() { return '__order__'; }
     static get OPTIONS() { return '__options__'; }
+    static get DROP_IF_EXISTS() { return '__dropIfExists__'; }
 
     constructor(schema = {}) {
         this._schema = Utils.copy(schema);
@@ -19,11 +21,9 @@ class JSONSchema {
         const columns = [];
 
         for (let columnName in this._schema) {
-            if(this._schema.hasOwnProperty(columnName)) {
-                const col = this.buildColumn(columnName);
-                if(col) {
-                    columns.push(col);
-                }
+            const col = this.buildColumn(columnName);
+            if (col) {
+                columns.push(col);
             }
         }
 
@@ -48,7 +48,7 @@ class JSONSchema {
      * @returns {string}
      */
     buildKeys() {
-        if(JSONSchema.invalidPrimaryKey(this._schema)) {
+        if (JSONSchema.invalidPrimaryKey(this._schema)) {
             return '';
         }
 
@@ -139,7 +139,7 @@ class JSONSchema {
                     const udtSchema = new JSONSchema(this._schema[prop]);
                     filteredObj[prop] = udtSchema.filterData(obj[prop]);
                 } else {
-                    filteredObj[prop] = JSONSchema.cassandraStringTypeOrDefault(this._schema[prop], obj[prop]);
+                    filteredObj[prop] = CassandraUtils.cassandraStringTypeOrDefault(this._schema[prop], obj[prop]);
                 }
             }
         }
@@ -188,22 +188,6 @@ class JSONSchema {
     }
 
     /**
-     * Cast to string if Cassandra column is text, varchar or ascii type
-     * @param {string} type
-     * @param {any} val
-     * @returns {string | any}
-     */
-    static cassandraStringTypeOrDefault(type, val = null) {
-        const stringTypes = [ 'text', 'varchar', 'ascii' ];
-
-        if (stringTypes.includes(type) && val !== null) {
-            return Utils.isObject(val) ? JSON.stringify(val) : val.toString();
-        }
-
-        return val;
-    }
-
-    /**
      * Replaces current user type references in column definitions with real objects of user type definitions
      * @param {object} types
      * @returns {JSONSchema}
@@ -214,7 +198,7 @@ class JSONSchema {
         }
 
         for (let colName in this._schema) {
-            if (this._schema.hasOwnProperty(colName) && JSONSchema.isNotReservedProperty(colName)) {
+            if (JSONSchema.isNotReservedProperty(colName)) {
                 const typeName = CassandraUtils.extractTypeName(this._schema[colName]);
                 if (types[typeName]) {
                     this._schema[colName] = types[typeName];
@@ -223,6 +207,69 @@ class JSONSchema {
         }
 
         return this;
+    }
+
+    /**
+     * Returns true if schema contains same columns as metadata
+     * @param metadataDescriptor cassandra-driver metadata object
+     * @returns {boolean}
+     */
+    comparePropertySetWithMetadata(metadataDescriptor) {
+        return Metadata.create(metadataDescriptor).isSameMembersSchema(this);
+    }
+
+    /**
+     * Returns array of property types mismatches in schema with metadata
+     * @param metadataDescriptor cassandra-driver metadata object
+     * @returns {Array}
+     */
+    diffPropertyTypesWithMetadata(metadataDescriptor) {
+        const mismatches = [];
+        const metadata = Metadata.create(metadataDescriptor);
+
+        const props = this.getProperties();
+
+        for (let propName in props) {
+            if (metadata.columnExists(propName)) {
+                const realType = metadata.getFullTypeName(propName);
+                const schemaType = CassandraUtils.replaceTypeAliases(props[propName].replace(/\s/g, ''));
+
+                if (realType !== schemaType) {
+                    mismatches.push({
+                        propName,
+                        realType,
+                        schemaType
+                    });
+                }
+            }
+        }
+
+        return mismatches;
+    }
+
+    /**
+     * Returns schema properties and values which are not reserved
+     * @returns {Object}
+     */
+    getProperties() {
+        const cols = {};
+
+        for (let prop in this._schema) {
+            if (JSONSchema.isNotReservedProperty(prop)) {
+                cols[prop] = this._schema[prop];
+            }
+        }
+
+        return cols;
+    }
+
+    /**
+     * Returns true if schema contains __dropIfExists__ set in true
+     * @returns {boolean}
+     */
+    shouldBeDropped() {
+        const dropIfExists = this._schema[JSONSchema.DROP_IF_EXISTS];
+        return !!Utils.booleanOrDefault(dropIfExists);
     }
 
     /**
@@ -235,7 +282,8 @@ class JSONSchema {
             JSONSchema.PRIMARY_KEY,
             JSONSchema.CLUSTERED_KEY,
             JSONSchema.ORDER,
-            JSONSchema.OPTIONS
+            JSONSchema.OPTIONS,
+            JSONSchema.DROP_IF_EXISTS
         ];
 
         return !reservedProps.includes(propName);

@@ -1,5 +1,8 @@
 const Utils = require('../lib/Utils');
+const JSONSchema = require('../lib/JSONSchema');
 const CQLBuilder = require('../lib/CQLBuilder');
+
+const SchemaComparisonNotifier = require('./SchemaComparisonNotifier');
 
 class CassandraStorage {
     static get COMMAND_GROUP() { return 'commands'; }
@@ -54,6 +57,28 @@ class CassandraStorage {
                 if (Utils.isNotEmpty(query)) {
                     execution.push(this._cassandra.execute(query))
                 }
+            }
+        }
+
+        return execution.length ? Promise.all(execution) : Promise.resolve(null);
+    }
+
+    dropTableSchemas(tables) {
+        return this._dropSchemas(CQLBuilder.dropTable().ifExists(), tables);
+    }
+
+    dropTypeSchemas(types) {
+        return this._dropSchemas(CQLBuilder.dropType().ifExists(), types);
+    }
+
+    _dropSchemas(queryBuilder, schemas) {
+        const execution = [];
+
+        for (let name in schemas) {
+            const schema = new JSONSchema(schemas[name]);
+            if (schema.shouldBeDropped()) {
+                const query = queryBuilder.withName(name).build();
+                execution.push(this._cassandra.execute(query));
             }
         }
 
@@ -200,6 +225,59 @@ class CassandraStorage {
         });
 
         return this;
+    }
+
+    compareTableSchemas() {
+        const notifier = new SchemaComparisonNotifier({
+            exists: 'tableExists',
+            structureMismatch: 'columnsMismatch',
+            typesMismatch: 'columnTypesMismatch'
+        });
+
+        return this._compareSchemas(this._tableSchemas, notifier);
+    }
+
+    compareUDTSchemas() {
+        const notifier = new SchemaComparisonNotifier({
+            exists: 'customTypeExists',
+            structureMismatch: 'fieldsMismatch',
+            typesMismatch: 'fieldTypesMismatch'
+        });
+
+        return this._compareSchemas(this._userTypes, notifier);
+    }
+
+    _compareSchemas(schemas, notifier) {
+        const requests = this._requestMetadata(schemas);
+
+        requests.forEach(metadataRequest => {
+            metadataRequest.then(md => {
+                if (!md) {
+                    return;
+                }
+
+                const { name } = md;
+
+                notifier.notifyExistence(name);
+
+                const schema = new JSONSchema(schemas[name]);
+
+                if (!schema.comparePropertySetWithMetadata(md)) {
+                    notifier.notifyStructureMismatch(name);
+                }
+
+                schema.diffPropertyTypesWithMetadata(md).forEach(mismatch => {
+                    const mismatchDetails = [ name, mismatch.propName, mismatch.realType, mismatch.schemaType ];
+                    notifier.notifyTypesMismatch(...mismatchDetails);
+                });
+            });
+        });
+
+        Promise.all(requests).then(() => {
+            notifier.emit('done');
+        });
+
+        return notifier;
     }
 
     /**

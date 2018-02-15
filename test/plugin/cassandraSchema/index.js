@@ -7,19 +7,28 @@ describe('Cassandra schemas creation', () => {
     const sandbox = sinon.createSandbox();
     let cassandra;
 
-    before(() => {
-        sinon.stub(console, 'error');
-    });
-
-    after(() => {
-        console.error.restore();
-    });
 
     beforeEach(() => {
-        cassandra = {
-            createTableSchemas: sinon.stub().returns(Promise.resolve({})),
-            createUDTSchemas: sinon.stub().returns(Promise.resolve({}))
+        cassandra = {};
+
+        cassandra.createTableSchemas = sinon.stub().returns(Promise.resolve({}));
+        cassandra.createUDTSchemas = sinon.stub().returns(Promise.resolve({}));
+        cassandra.setTableSchemas = sinon.stub().returns(cassandra);
+        cassandra.setUDTSchemas = sinon.stub().returns(cassandra)
+        cassandra.dropTypeSchemas = sinon.stub().returns(Promise.resolve({}));
+        cassandra.dropTableSchemas = sinon.stub().returns(Promise.resolve({}));
+
+        const notifier = {
+            on(event, handler) {
+                if (event === 'done') {
+                    handler();
+                }
+
+                return this;
+            }
         };
+        cassandra.compareTableSchemas = sinon.stub().returns(notifier);
+        cassandra.compareUDTSchemas = sinon.stub().returns(notifier);
 
         sandbox.stub(cassandraStorage, 'connect').returns(Promise.resolve(cassandra));
         sandbox.stub(process, 'exit');

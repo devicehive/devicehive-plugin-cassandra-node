@@ -1,5 +1,7 @@
 const assert = require('assert');
 
+const MetadataBuilder = require('../dataBuilders/TableMetadataBuilder');
+
 const JSONSchema = require('../../../cassandra/lib/JSONSchema');
 
 describe('JSON Schema', () => {
@@ -80,24 +82,6 @@ describe('JSON Schema', () => {
         assert.equal(jsonSchema.filterData(null), null);
     });
 
-    it('Should cast value to string if Cassandra type is text, ascii or varchar', () => {
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', 123), '123');
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('ascii', 123), '123');
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('varchar', 123), '123');
-    });
-
-    it('Should stringify to JSON object if Cassandra type is text, ascii or varchar', () => {
-        const obj = { prop: 'test' };
-        const stringified = JSON.stringify(obj);
-
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', obj), stringified);
-    });
-
-    it('Should return null if second argument (value) for cassandraStringTypeOrDefault is null or undefined', () => {
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text'), null);
-        assert.strictEqual(JSONSchema.cassandraStringTypeOrDefault('text', null), null);
-    });
-
     it('Should return filtered object consisted of primary and clustered keys only', () => {
         const schema = new JSONSchema({
             id: 'int',
@@ -144,5 +128,135 @@ describe('JSON Schema', () => {
             col1: 'test',
             col2: 'test2'
         });
+    });
+
+    it('Should return true if schema columns set is same as columns in given metadata object', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            __primaryKey__: [ 'id' ]
+        });
+        const metadata = new MetadataBuilder().withColumn('id').build();
+
+        assert.equal(schema.comparePropertySetWithMetadata(metadata), true);
+    });
+
+    it('Should return false if schema columns set is NOT same as columns in given metadata object', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            __primaryKey__: [ 'id' ]
+        });
+        const metadata = new MetadataBuilder().withColumn('col1').build();
+
+        assert.equal(schema.comparePropertySetWithMetadata(metadata), false);
+    });
+
+    it('Should return array of mismatches in case some column types of schema do not match columns in metadata', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            Col1: 'text',
+            __primaryKey__: [ 'id' ]
+        });
+        const metadata = new MetadataBuilder().withTextColumn('id').withIntColumn('col1').build();
+
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
+
+        const expected = [
+            {
+                propName: 'id',
+                realType: 'text',
+                schemaType: 'int'
+            },
+            {
+                propName: 'Col1',
+                realType: 'int',
+                schemaType: 'text'
+            }
+        ];
+        assert.deepEqual(mismatches, expected);
+    });
+
+    it('Should NOT return any mismatches in case column types are map with same key and value types', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'map<text,text>',
+            __primaryKey__: [ 'id' ]
+        });
+        const mdBuilder = new MetadataBuilder().withIntColumn('id').withMapColumn('col1');
+        mdBuilder.withColumnNestedTextType('col1').withColumnNestedTextType('col1');
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 0);
+    });
+
+    it('Should NOT return any mismatches in case columns are the same user defined type', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'my_type',
+            __primaryKey__: [ 'id' ]
+        });
+
+        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
+        mdBuilder.withColumnTypeName('col1', 'my_type');
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 0);
+    });
+
+    it('Should return mismatches in case columns are the same user defined type but in metadata type is frozen', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'my_type',
+            __primaryKey__: [ 'id' ]
+        });
+
+        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
+        mdBuilder.withColumnTypeName('col1', 'my_type').withColumnTypeOption('col1', 'frozen', true);
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 1);
+    });
+
+    it('Should return mismatches in case columns are NOT the same user defined type', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            col1: 'my_type',
+            __primaryKey__: [ 'id' ]
+        });
+
+        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
+        mdBuilder.withColumnTypeName('col1', 'another_type');
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 1);
+    });
+
+    it('Should treat varchar as text in basic types and return 0 mismatches', () => {
+        const schema = new JSONSchema({
+            field1: 'varchar'
+        });
+
+        const mdBuilder = new MetadataBuilder().withTextColumn('field1');
+        const metadata = mdBuilder.build();
+
+        const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
+
+        assert.equal(mismatches.length, 0);
+    });
+
+    it('Should return false for shouldBeDropped() if __dropIfExists__ is absent in schema', () => {
+        const schema = new JSONSchema({
+            id: 'int',
+            __primaryKey__: [ 'id' ]
+        });
+
+        assert.strictEqual(schema.shouldBeDropped(), false);
     });
 });

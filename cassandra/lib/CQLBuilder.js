@@ -27,6 +27,23 @@ class CQLBuilder {
     }
 
     /**
+     * Creates query based on given type
+     * @param type CQLBuilder.INSERT_QUERY or CQLBuilder.UPDATE_QUERY
+     * @returns {QueryBuilder}
+     */
+    static query(type) {
+        const queryBuilder = new QueryBuilder();
+
+        if (type === CQLBuilder.INSERT_QUERY) {
+            queryBuilder.insertInto();
+        } else if (type === CQLBuilder.UPDATE_QUERY) {
+            queryBuilder.update();
+        }
+
+        return queryBuilder;
+    }
+
+    /**
      * Creates table creation type of query
      * @param tableName
      * @returns {TableSchemaBuilder}
@@ -44,16 +61,12 @@ class CQLBuilder {
         return new UDTSchemaBuilder().createType(typeName);
     }
 
-    static query(type) {
-        const queryBuilder = new QueryBuilder();
+    static dropTable(tableName = '') {
+        return new TableSchemaBuilder().dropTable(tableName);
+    }
 
-        if (type === CQLBuilder.INSERT_QUERY) {
-            queryBuilder.insertInto();
-        } else if (type === CQLBuilder.UPDATE_QUERY) {
-            queryBuilder.update();
-        }
-
-        return queryBuilder;
+    static dropType(typeName = '') {
+        return new UDTSchemaBuilder().dropType(typeName);
     }
 }
 

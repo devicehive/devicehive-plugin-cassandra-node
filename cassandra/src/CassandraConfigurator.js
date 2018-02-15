@@ -106,7 +106,7 @@ class CassandraConfigurator {
             } else {
                 value = config[key] && Utils.booleanOrDefault(config[key].toString().trim());
                 if (value.includes && value.includes(',')) {
-                    value = value.split(',').map(str => str.trim());
+                    value = value.split(',').map(str => str.trim()).filter(str => Utils.isNotEmpty(str));
                 }
             }
 

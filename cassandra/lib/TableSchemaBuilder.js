@@ -2,13 +2,27 @@ const JSONSchema = require('./JSONSchema');
 const BaseSchemaBuilder = require('./BaseSchemaBuilder');
 
 class TableSchemaBuilder extends BaseSchemaBuilder {
+    constructor() {
+        super();
+        this._structureType = TableSchemaBuilder.TABLE_STRUCTURE;
+    }
+
     /**
-     * Specifies type of query
+     * Specifies create type of query
      * @param [tableName = '']
      * @returns {TableSchemaBuilder}
      */
     createTable(tableName = '') {
-        return this._create('TABLE', tableName);
+        return this._create(tableName);
+    }
+
+    /**
+     * Specifies drop type of query
+     * @param [tableName = '']
+     * @returns {TableSchemaBuilder}
+     */
+    dropTable(tableName) {
+        return this._drop(tableName);
     }
 
     /**
