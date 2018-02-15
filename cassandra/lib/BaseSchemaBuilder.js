@@ -1,18 +1,12 @@
 const Utils = require('./Utils');
 
 class BaseSchemaBuilder {
-    static get CREATE_QUERY_TYPE() { return 0; }
-    static get DROP_QUERY_TYPE() { return 1; }
-
-    static get TYPE_STRUCTURE() { return 'TYPE'; }
-    static get TABLE_STRUCTURE() { return 'TABLE'; }
-
     constructor() {
         this._queryString = '';
         this._queryType = null;
         this._name = '';
         this._definition = '';
-        this._ifCondition = '';
+        this._ifConditionExists = false;
         this._structureType = '';
     }
 
@@ -30,7 +24,7 @@ class BaseSchemaBuilder {
      * @returns {string}
      */
     build() {
-        return `${this._queryString} ${this._ifCondition}${this._name}${this._definition}`;
+        return `${this._queryString} ${this._name}${this._definition}`;
     }
 
     /**
@@ -48,9 +42,9 @@ class BaseSchemaBuilder {
      * @returns {BaseSchemaBuilder}
      */
     ifNotExists() {
-        if (this._queryType === BaseSchemaBuilder.CREATE_QUERY_TYPE) {
-            // @TODO Remove this variable, use append to this._queryString and appropriate flag for IF NOT EXISTS
-            this._ifCondition = 'IF NOT EXISTS ';
+        if (this._queryType === BaseSchemaBuilder.CREATE_QUERY_TYPE && !this._ifConditionExists) {
+            this._ifConditionExists = true;
+            this._queryString += ' IF NOT EXISTS';
         }
 
         return this;
@@ -61,8 +55,9 @@ class BaseSchemaBuilder {
      * @returns {BaseSchemaBuilder}
      */
     ifExists() {
-        if (this._queryType === BaseSchemaBuilder.DROP_QUERY_TYPE) {
-            this._ifCondition = 'IF EXISTS ';
+        if (this._queryType === BaseSchemaBuilder.DROP_QUERY_TYPE && !this._ifConditionExists) {
+            this._ifConditionExists = true;
+            this._queryString += ' IF EXISTS';
         }
 
         return this;
@@ -106,6 +101,12 @@ class BaseSchemaBuilder {
 
         return Utils.isEmpty(name) ? this : this.withName(name);
     }
+
+    static get CREATE_QUERY_TYPE() { return 0; }
+    static get DROP_QUERY_TYPE() { return 1; }
+
+    static get TYPE_STRUCTURE() { return 'TYPE'; }
+    static get TABLE_STRUCTURE() { return 'TABLE'; }
 }
 
 module.exports = BaseSchemaBuilder;

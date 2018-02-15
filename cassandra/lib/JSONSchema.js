@@ -263,6 +263,10 @@ class JSONSchema {
         return cols;
     }
 
+    /**
+     * Returns true if schema contains __dropIfExists__ set in true
+     * @returns {boolean}
+     */
     shouldBeDropped() {
         const dropIfExists = this._schema[JSONSchema.DROP_IF_EXISTS];
         return !!Utils.booleanOrDefault(dropIfExists);
