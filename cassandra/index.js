@@ -20,7 +20,7 @@ module.exports = {
 };
 
 function createConfig(userConfig) {
-    const conf = CassandraConfigurator.normalizeConfig(Utils.merge({}, defaultConfig, userConfig));
+    const conf = Utils.merge({}, defaultConfig, CassandraConfigurator.normalizeConfig(userConfig));
     const configurator = new CassandraConfigurator(conf.connection);
 
     configurator.configAuthProvider()
