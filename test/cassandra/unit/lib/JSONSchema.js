@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const MetadataBuilder = require('../../dataBuilders/TableMetadataBuilder');
+const TableMetadataBuilder = require('../../dataBuilders/TableMetadataBuilder');
 
 const JSONSchema = require('../../../../cassandra/lib/JSONSchema');
 
@@ -130,12 +130,12 @@ describe('JSON Schema', () => {
         });
     });
 
-    it('Should return true if schema columns set is same as columns in given metadata object', () => {
+    it('Should return true if schema columns set is same as columns set in given metadata object', () => {
         const schema = new JSONSchema({
             id: 'int',
             __primaryKey__: [ 'id' ]
         });
-        const metadata = new MetadataBuilder().withColumn('id').build();
+        const metadata = new TableMetadataBuilder().withColumn('id').build();
 
         assert.equal(schema.comparePropertySetWithMetadata(metadata), true);
     });
@@ -145,9 +145,36 @@ describe('JSON Schema', () => {
             id: 'int',
             __primaryKey__: [ 'id' ]
         });
-        const metadata = new MetadataBuilder().withColumn('col1').build();
+        const metadata = new TableMetadataBuilder().withColumn('col1').build();
 
         assert.equal(schema.comparePropertySetWithMetadata(metadata), false);
+    });
+
+    it('Should return true if schema primary key is same as primary key in given metadata object', () => {
+        const schema = new JSONSchema({
+            col1: 'int',
+            col2: 'int',
+            __primaryKey__: [ 'col1', 'col2' ]
+        });
+        const metadataBuilder = new TableMetadataBuilder().withIntColumn('col1');
+        metadataBuilder.withIntColumn('col2').withPrimaryKey('col1', 'col2');
+        const metadata = metadataBuilder.build();
+
+        assert.equal(schema.comparePrimaryKeyWithMetadata(metadata), true);
+    });
+
+    it('Should return false if schema primary key is NOT same as primary key in given metadata object', () => {
+        const schema = new JSONSchema({
+            col1: 'int',
+            col2: 'int',
+            col3: 'int',
+            __primaryKey__: [ 'col1', 'col3' ]
+        });
+        const metadataBuilder = new TableMetadataBuilder().withIntColumn('col1');
+        metadataBuilder.withIntColumn('col2').withPrimaryKey('col1', 'col2');
+        const metadata = metadataBuilder.build();
+
+        assert.equal(schema.comparePrimaryKeyWithMetadata(metadata), false);
     });
 
     it('Should return array of mismatches in case some column types of schema do not match columns in metadata', () => {
@@ -156,7 +183,7 @@ describe('JSON Schema', () => {
             Col1: 'text',
             __primaryKey__: [ 'id' ]
         });
-        const metadata = new MetadataBuilder().withTextColumn('id').withIntColumn('col1').build();
+        const metadata = new TableMetadataBuilder().withTextColumn('id').withIntColumn('col1').build();
 
         const mismatches = schema.diffPropertyTypesWithMetadata(metadata);
 
@@ -181,7 +208,7 @@ describe('JSON Schema', () => {
             col1: 'map<text,text>',
             __primaryKey__: [ 'id' ]
         });
-        const mdBuilder = new MetadataBuilder().withIntColumn('id').withMapColumn('col1');
+        const mdBuilder = new TableMetadataBuilder().withIntColumn('id').withMapColumn('col1');
         mdBuilder.withColumnNestedTextType('col1').withColumnNestedTextType('col1');
         const metadata = mdBuilder.build();
 
@@ -197,7 +224,7 @@ describe('JSON Schema', () => {
             __primaryKey__: [ 'id' ]
         });
 
-        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
+        const mdBuilder = new TableMetadataBuilder().withIntColumn('id').withUDTColumn('col1');
         mdBuilder.withColumnTypeName('col1', 'my_type');
         const metadata = mdBuilder.build();
 
@@ -213,7 +240,7 @@ describe('JSON Schema', () => {
             __primaryKey__: [ 'id' ]
         });
 
-        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
+        const mdBuilder = new TableMetadataBuilder().withIntColumn('id').withUDTColumn('col1');
         mdBuilder.withColumnTypeName('col1', 'my_type').withColumnTypeOption('col1', 'frozen', true);
         const metadata = mdBuilder.build();
 
@@ -229,7 +256,7 @@ describe('JSON Schema', () => {
             __primaryKey__: [ 'id' ]
         });
 
-        const mdBuilder = new MetadataBuilder().withIntColumn('id').withUDTColumn('col1');
+        const mdBuilder = new TableMetadataBuilder().withIntColumn('id').withUDTColumn('col1');
         mdBuilder.withColumnTypeName('col1', 'another_type');
         const metadata = mdBuilder.build();
 
@@ -243,7 +270,7 @@ describe('JSON Schema', () => {
             field1: 'varchar'
         });
 
-        const mdBuilder = new MetadataBuilder().withTextColumn('field1');
+        const mdBuilder = new TableMetadataBuilder().withTextColumn('field1');
         const metadata = mdBuilder.build();
 
         const mismatches = schema.diffPropertyTypesWithMetadata(metadata);

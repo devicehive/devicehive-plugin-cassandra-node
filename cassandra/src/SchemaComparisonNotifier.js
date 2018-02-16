@@ -3,7 +3,8 @@ const EventEmitter = require('events');
 class SchemaComparisonNotifier extends EventEmitter {
     constructor(events) {
         super();
-        this._events = events;
+        this._events = { ...events };
+        this._events.primaryKeyMismatch = 'primaryKeyMismatch';
     }
 
     notifyExistence(name) {
@@ -16,6 +17,10 @@ class SchemaComparisonNotifier extends EventEmitter {
 
     notifyTypesMismatch(...mismatchDetails) {
         return this.emit(this._events.typesMismatch, ...mismatchDetails);
+    }
+
+    notifyPrimaryKeyMismatch(name) {
+        return this.emit(this._events.primaryKeyMismatch, name);
     }
 }
 

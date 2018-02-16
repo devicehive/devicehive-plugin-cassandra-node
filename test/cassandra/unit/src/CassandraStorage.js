@@ -238,7 +238,7 @@ describe('Cassandra Storage Provider', () => {
     });
 
     it('Should emit "tableExists" event if table already exists', done => {
-        const metadata = new TableMetadataBuilder().withName('testTable').withIntColumn('col1').build();
+        const metadata = new TableMetadataBuilder().withName('testTable').withIntColumn('col1').withPrimaryKey('col1').build();
         MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(metadata));
         const cassandra = new CassandraStorage(new MockCassandraClient());
         const schemas = {
@@ -289,15 +289,15 @@ describe('Cassandra Storage Provider', () => {
     });
 
     it('Should emit "columnTypesMismatch" event if table contains same columns as schema but different types', done => {
-        const metadata = new TableMetadataBuilder().withName('testTable').withIntColumn('col1').withTextColumn('col2').build();
+        const metadataBuilder = new TableMetadataBuilder().withName('testTable').withIntColumn('col1');
+        const metadata = metadataBuilder.withTextColumn('col2').withPrimaryKey('col1').build();
         MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(metadata));
         const cassandra = new CassandraStorage(new MockCassandraClient());
         const schemas = {
             testTable: {
                 col1: 'int',
                 col2: 'int',
-                __primaryKey__: [ 'col1' ],
-                __clusteredKey__: [ 'col2' ]
+                __primaryKey__: [ 'col1' ]
             }
         };
 
@@ -321,15 +321,15 @@ describe('Cassandra Storage Provider', () => {
     });
 
     it('Should emit "columnsMismatch" event if schema has columns which real table does not have', done => {
-        const metadata = new TableMetadataBuilder().withName('testTable').withIntColumn('col1').withTextColumn('col2').build();
+        const metadataBuilder = new TableMetadataBuilder().withName('testTable').withIntColumn('col1');
+        const metadata = metadataBuilder.withTextColumn('col2').withPrimaryKey('col1').build();
         MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(metadata));
         const cassandra = new CassandraStorage(new MockCassandraClient());
         const schemas = {
             testTable: {
                 col1: 'int',
                 col3: 'int',
-                __primaryKey__: [ 'col1' ],
-                __clusteredKey__: [ 'col3' ]
+                __primaryKey__: [ 'col1' ]
             }
         };
 
@@ -343,6 +343,37 @@ describe('Cassandra Storage Provider', () => {
 
             const [ event, tableName ] = eventEmitter.emit.secondCall.args;
             assert.equal(event, 'columnsMismatch');
+            assert.equal(tableName, 'testTable');
+
+            done();
+        });
+    });
+
+    it('Should emit "primaryKeyMismatch" event if schema has primary key different from real one', done => {
+        const metadataBuilder = new TableMetadataBuilder().withName('testTable').withIntColumn('col1');
+        metadataBuilder.withIntColumn('col2').withPrimaryKey('col1');
+
+        const metadata = metadataBuilder.build();
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(metadata));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                col2: 'int',
+                __primaryKey__: [ 'col2' ]
+            }
+        };
+
+        cassandra.setTableSchemas(schemas);
+        const notifier = cassandra.compareTableSchemas();
+
+        sinon.spy(notifier, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(notifier.emit.callCount, 3, 'Number of times event was emitted');
+
+            const [ event, tableName ] = notifier.emit.secondCall.args;
+            assert.equal(event, 'primaryKeyMismatch');
             assert.equal(tableName, 'testTable');
 
             done();

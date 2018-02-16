@@ -270,6 +270,10 @@ class CassandraStorage {
                     const mismatchDetails = [ name, mismatch.propName, mismatch.realType, mismatch.schemaType ];
                     notifier.notifyTypesMismatch(...mismatchDetails);
                 });
+
+                if (!schema.comparePrimaryKeyWithMetadata(md)) {
+                    notifier.notifyPrimaryKeyMismatch(name);
+                }
             });
         });
 

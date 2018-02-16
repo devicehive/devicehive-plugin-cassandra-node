@@ -1,6 +1,14 @@
 const DataBuilder = require('smp-data-builder');
 
 class TableMetadataBuilder extends DataBuilder {
+    withPrimaryKey(...colNames) {
+        colNames.forEach(col => {
+            this.with('partitionKeys', [ { name: col } ]);
+        });
+
+        return this;
+    }
+
     withColumnTypeOption(columnName, optName, optVal) {
         const type = this.obj.columnsByName[columnName].type;
 

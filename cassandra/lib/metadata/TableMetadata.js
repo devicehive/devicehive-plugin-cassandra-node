@@ -14,6 +14,17 @@ class TableMetadata extends Metadata {
     _getTypeDescription(colName) {
         return this._md.columnsByName[colName].type;
     }
+
+    isSamePrimaryKey(jsonSchema) {
+        const jsonSchemaPrimaryKey = jsonSchema.getPrimaryKey().map(pk => pk.toLowerCase());
+        const metadataPrimaryKey = (this._md.partitionKeys || []).map(pk => pk.name);
+
+        if (jsonSchemaPrimaryKey.length !== metadataPrimaryKey.length) {
+            return false;
+        }
+
+        return jsonSchemaPrimaryKey.every(pk => metadataPrimaryKey.includes(pk));
+    }
 }
 
 module.exports = TableMetadata;

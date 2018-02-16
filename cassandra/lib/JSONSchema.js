@@ -218,6 +218,10 @@ class JSONSchema {
         return Metadata.create(metadataDescriptor).isSameMembersSchema(this);
     }
 
+    comparePrimaryKeyWithMetadata(metadataDescriptor) {
+        return Metadata.create(metadataDescriptor).isSamePrimaryKey(this);
+    }
+
     /**
      * Returns array of property types mismatches in schema with metadata
      * @param metadataDescriptor cassandra-driver metadata object
@@ -261,6 +265,10 @@ class JSONSchema {
         }
 
         return cols;
+    }
+
+    getPrimaryKey() {
+        return JSONSchema.invalidPrimaryKey(this._schema) ? [] : [].concat(this._schema[JSONSchema.PRIMARY_KEY]);
     }
 
     /**
