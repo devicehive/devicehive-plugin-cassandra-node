@@ -8,7 +8,7 @@ class TablesBuilder extends DataBuilder {
                 col2: 'text',
                 col3: 'varchar',
                 __primaryKey__: [ 'col1' ],
-                __clusteredKey__: [ 'col2' ]
+                __clusteringKey__: [ 'col2' ]
             });
         });
 

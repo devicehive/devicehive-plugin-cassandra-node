@@ -82,44 +82,44 @@ describe('JSON Schema', () => {
         assert.equal(jsonSchema.filterData(null), null);
     });
 
-    it('Should return filtered object consisted of primary and clustered keys only', () => {
+    it('Should return filtered object consisted of primary and clustering keys only', () => {
         const schema = new JSONSchema({
             id: 'int',
-            clustered: 'int',
+            clustering: 'int',
             col1: 'text',
 
             __primaryKey__: [ 'id' ],
-            __clusteredKey__: [ 'clustered' ]
+            __clusteringKey__: [ 'clustering' ]
         });
         const data = {
             id: 123,
             col1: 'test',
-            clustered: 111
+            clustering: 111
         };
 
         const keyValues = schema.extractKeys(data);
 
         assert.deepEqual(keyValues, {
             id: 123,
-            clustered: 111
+            clustering: 111
         });
     });
 
     it('Should return filtered object consisted of not key columns only', () => {
         const schema = new JSONSchema({
             id: 'int',
-            clustered: 'int',
+            clustering: 'int',
             col1: 'text',
             col2: 'text',
 
             __primaryKey__: [ 'id' ],
-            __clusteredKey__: [ 'clustered' ]
+            __clusteringKey__: [ 'clustering' ]
         });
         const data = {
             id: 123,
             col1: 'test',
             col2: 'test2',
-            clustered: 111
+            clustering: 111
         };
 
         const notKeyValues = schema.extractNotKeys(data);

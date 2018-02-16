@@ -115,7 +115,7 @@ describe('Cassandra Storage Provider', () => {
             command: 'text',
             timestamp: 'timestamp',
             __primaryKey__: [ 'command' ],
-            __clusteredKey__: [ 'timestamp' ]
+            __clusteringKey__: [ 'timestamp' ]
         }).build();
         const batchSpy = MockCassandraClient.prototype.batch;
 
@@ -151,7 +151,7 @@ describe('Cassandra Storage Provider', () => {
             timestamp: 'timestamp',
             someNonexistentField: 'int',
             __primaryKey__: [ 'command' ],
-            __clusteredKey__: [ 'timestamp' ]
+            __clusteringKey__: [ 'timestamp' ]
         }).build();
         const batchSpy = MockCassandraClient.prototype.batch;
 

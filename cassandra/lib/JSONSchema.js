@@ -4,7 +4,7 @@ const Metadata = require('./metadata');
 
 class JSONSchema {
     static get PRIMARY_KEY() { return '__primaryKey__'; }
-    static get CLUSTERED_KEY() { return '__clusteredKey__'; }
+    static get CLUSTERING_KEY() { return '__clusteringKey__'; }
     static get ORDER() { return '__order__'; }
     static get OPTIONS() { return '__options__'; }
     static get DROP_IF_EXISTS() { return '__dropIfExists__'; }
@@ -44,7 +44,7 @@ class JSONSchema {
     }
 
     /**
-     * Constructs primary and clustered key definition
+     * Constructs primary and clustering key definition
      * @returns {string}
      */
     buildKeys() {
@@ -55,9 +55,9 @@ class JSONSchema {
         const primaryKeyColumns = this._schema[JSONSchema.PRIMARY_KEY].join(',');
         let primaryKeyDefinition = `(${primaryKeyColumns})`;
 
-        if (JSONSchema.validClusteredKey(this._schema)) {
-            const clusteredKeyColumns = this._schema[JSONSchema.CLUSTERED_KEY].join(',');
-            primaryKeyDefinition += `,${clusteredKeyColumns}`;
+        if (JSONSchema.validClusteringKey(this._schema)) {
+            const clusteringKeyColumns = this._schema[JSONSchema.CLUSTERING_KEY].join(',');
+            primaryKeyDefinition += `,${clusteringKeyColumns}`;
         }
 
 
@@ -182,9 +182,9 @@ class JSONSchema {
 
     isKey(prop) {
         const primaryKeys = this._schema[JSONSchema.PRIMARY_KEY] || [];
-        const clusteredKeys = this._schema[JSONSchema.CLUSTERED_KEY] || [];
+        const clusteringKeys = this._schema[JSONSchema.CLUSTERING_KEY] || [];
 
-        return primaryKeys.includes(prop) || clusteredKeys.includes(prop);
+        return primaryKeys.includes(prop) || clusteringKeys.includes(prop);
     }
 
     /**
@@ -288,7 +288,7 @@ class JSONSchema {
     static isNotReservedProperty(propName) {
         const reservedProps = [
             JSONSchema.PRIMARY_KEY,
-            JSONSchema.CLUSTERED_KEY,
+            JSONSchema.CLUSTERING_KEY,
             JSONSchema.ORDER,
             JSONSchema.OPTIONS,
             JSONSchema.DROP_IF_EXISTS
@@ -307,12 +307,12 @@ class JSONSchema {
     }
 
     /**
-     * Returns true if clustered key of schema is valid
+     * Returns true if clustering key of schema is valid
      * @param schema
      * @returns {boolean}
      */
-    static validClusteredKey(schema) {
-        return schema.hasOwnProperty(JSONSchema.CLUSTERED_KEY) && schema[JSONSchema.CLUSTERED_KEY].length;
+    static validClusteringKey(schema) {
+        return schema.hasOwnProperty(JSONSchema.CLUSTERING_KEY) && schema[JSONSchema.CLUSTERING_KEY].length;
     }
 }
 

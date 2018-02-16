@@ -8,7 +8,7 @@ describe('Query Builder', () => {
             col1: 'int',
             col2: 'int',
             __primaryKey__: [ 'col1' ],
-            __clusteredKey__: [ 'col2' ]
+            __clusteringKey__: [ 'col2' ]
         };
         const data = {
             col1: 1,
@@ -85,23 +85,23 @@ describe('Query Builder', () => {
             col2: 'int',
             id: 'int',
             id2: 'int',
-            clustered: 'int',
+            clustering: 'int',
             __primaryKey__: [ 'id', 'id2' ],
-            __clusteredKey__: [ 'clustered' ]
+            __clusteringKey__: [ 'clustering' ]
         };
         const data = {
             col1: 'test',
             col2: 111,
             id: 1,
             id2: 2,
-            clustered: 3
+            clustering: 3
         };
 
         const builder = new QueryBuilder().update('table').withJSONSchema(schema).queryParams(data);
 
         const cql = builder.build();
 
-        assert.equal(cql.query, 'UPDATE table SET col1 = ?, col2 = ? WHERE id = ? AND id2 = ? AND clustered = ? IF EXISTS')
+        assert.equal(cql.query, 'UPDATE table SET col1 = ?, col2 = ? WHERE id = ? AND id2 = ? AND clustering = ? IF EXISTS')
         assert.deepEqual(cql.params, [ 'test', 111, 1, 2, 3 ]);
     });
 });
