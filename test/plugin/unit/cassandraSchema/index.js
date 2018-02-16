@@ -1,7 +1,9 @@
 const assert = require('assert');
 const sinon = require('sinon');
 
-const cassandraStorage = require('../../../cassandra');
+const cassandraStorage = require('../../../../cassandra/index');
+
+const cassandraSchemaModulePath = '../../../../plugin/cassandraSchema';
 
 describe('Cassandra schemas creation', () => {
     const sandbox = sinon.createSandbox();
@@ -35,12 +37,12 @@ describe('Cassandra schemas creation', () => {
     });
 
     afterEach(() => {
-        delete require.cache[require.resolve('../../../plugin/cassandraSchema')];
+        delete require.cache[require.resolve(cassandraSchemaModulePath)];
         sandbox.restore();
     });
 
     it('Should create Cassandra user defined types and tables on script run', done => {
-        require('../../../plugin/cassandraSchema');
+        require(cassandraSchemaModulePath);
 
         asyncAssertion(() => {
             assert(cassandra.createUDTSchemas.calledOnce);
@@ -51,7 +53,7 @@ describe('Cassandra schemas creation', () => {
     });
 
     it('Should fail Cassandra schema creation if "parameters" field is not basic type', () => {
-        require('../../../cassandraSchemas/cassandra-tables').tables = {
+        require('../../../../cassandraSchemas/cassandra-tables').tables = {
             test: {
                 id: 'int',
                 parameters: 'frozen<list<int>>',
@@ -59,7 +61,7 @@ describe('Cassandra schemas creation', () => {
             }
         };
 
-        require('../../../plugin/cassandraSchema');
+        require(cassandraSchemaModulePath);
 
         assert(process.exit.calledWith(1));
     });

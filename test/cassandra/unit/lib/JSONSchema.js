@@ -1,8 +1,8 @@
 const assert = require('assert');
 
-const MetadataBuilder = require('../dataBuilders/TableMetadataBuilder');
+const MetadataBuilder = require('../../dataBuilders/TableMetadataBuilder');
 
-const JSONSchema = require('../../../cassandra/lib/JSONSchema');
+const JSONSchema = require('../../../../cassandra/lib/JSONSchema');
 
 describe('JSON Schema', () => {
     it('Should filter data object based on table schema', () => {

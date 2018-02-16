@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const SchemaCreator = require('../../../plugin/cassandraSchema/SchemaCreator');
+const SchemaCreator = require('../../../../plugin/cassandraSchema/SchemaCreator');
 
 describe('Schema Creator', () => {
     it('Should return error if parameters field is frozen list type', () => {

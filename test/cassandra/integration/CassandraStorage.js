@@ -212,6 +212,181 @@ describe('Integration tests: Cassandra Storage', function() {
         const { rows: updatedRows } = await cassandraDriverClient.execute(`SELECT * FROM ${TEST_KEYSPACE}.test`);
         assert.equal(updatedRows.length, 0);
     });
+
+    it('Should execute callback with true if all schemas are created', done => {
+        const udtSchemas = {
+            my_type: {
+                field1: 'int'
+            }
+        };
+        const tableSchemas = {
+            my_table: {
+                col1: 'int',
+                __primaryKey__: [ 'col1' ]
+            }
+        };
+
+        cassandraDriverClient.execute(`CREATE TYPE ${TEST_KEYSPACE}.my_type(field1 int)`).then(() => {
+            return cassandraDriverClient.execute(`CREATE TABLE ${TEST_KEYSPACE}.my_table(col1 int PRIMARY KEY)`);
+        }).then(() => {
+            cassandraStorage.setUDTSchemas(udtSchemas).setTableSchemas(tableSchemas);
+
+            cassandraStorage.checkSchemasExistence(exist => {
+                assert(exist);
+                done();
+            });
+        });
+    });
+
+    it('Should execute callback with false if schemas are not created', done => {
+        const udtSchemas = {
+            my_type: {
+                field1: 'int'
+            }
+        };
+        const tableSchemas = {
+            my_table: {
+                col1: 'int',
+                __primaryKey__: [ 'col1' ]
+            }
+        };
+        cassandraStorage.setUDTSchemas(udtSchemas).setTableSchemas(tableSchemas);
+
+        cassandraStorage.checkSchemasExistence(exist => {
+            assert(!exist);
+            done();
+        });
+    });
+
+    describe('Schema comparison', () => {
+        it('Should emit "tableExists" event with table name if table defined in schema already exists', done => {
+            const tableSchemas = {
+                my_table: {
+                    col1: 'int',
+                    __primaryKey__: [ 'col1' ]
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TABLE ${TEST_KEYSPACE}.my_table(col1 int PRIMARY KEY)`).then(() => {
+                cassandraStorage.setTableSchemas(tableSchemas);
+                cassandraStorage.compareTableSchemas().on('tableExists', tableName => {
+                    assert.equal(tableName, 'my_table');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "columnsMismatch" event with table name if table defined in schema has different columns set', done => {
+            const tableSchemas = {
+                my_table: {
+                    col2: 'int',
+                    __primaryKey__: [ 'col2' ]
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TABLE ${TEST_KEYSPACE}.my_table(col1 int PRIMARY KEY)`).then(() => {
+                cassandraStorage.setTableSchemas(tableSchemas);
+                cassandraStorage.compareTableSchemas().on('columnsMismatch', tableName => {
+                    assert.equal(tableName, 'my_table');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "columnTypesMismatch" event with table name, column name, real type and schema type if table column types mismatch', done => {
+            const tableSchemas = {
+                my_table: {
+                    col1: 'text',
+                    __primaryKey__: [ 'col1' ]
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TABLE ${TEST_KEYSPACE}.my_table(col1 int PRIMARY KEY)`).then(() => {
+                cassandraStorage.setTableSchemas(tableSchemas);
+                cassandraStorage.compareTableSchemas().on('columnTypesMismatch', (tableName, colName, realType, schemaType) => {
+                    assert.equal(tableName, 'my_table');
+                    assert.equal(colName, 'col1');
+                    assert.equal(realType, 'int');
+                    assert.equal(schemaType, 'text');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "done" after table comparison has been done', done => {
+            const tableSchemas = {
+                my_table: {
+                    col1: 'text',
+                    __primaryKey__: [ 'col1' ]
+                }
+            };
+
+            cassandraStorage.setTableSchemas(tableSchemas);
+            cassandraStorage.compareTableSchemas().on('done', done);
+        });
+
+        it('Should emit "customTypeExists" event with UDT name if type defined in schema already exists', done => {
+            const udtSchemas = {
+                my_type: {
+                    field1: 'int'
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TYPE ${TEST_KEYSPACE}.my_type(field1 int)`).then(() => {
+                cassandraStorage.setUDTSchemas(udtSchemas);
+                cassandraStorage.compareUDTSchemas().on('customTypeExists', typeName => {
+                    assert.equal(typeName, 'my_type');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "fieldsMismatch" event with type name if type defined in schema has different fields set', done => {
+            const udtSchemas = {
+                my_type: {
+                    field2: 'int'
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TYPE ${TEST_KEYSPACE}.my_type(field1 int)`).then(() => {
+                cassandraStorage.setUDTSchemas(udtSchemas);
+                cassandraStorage.compareUDTSchemas().on('fieldsMismatch', typeName => {
+                    assert.equal(typeName, 'my_type');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "fieldTypesMismatch" event with type name, field name, real and schema types if UDT field types mismatch', done => {
+            const udtSchemas = {
+                my_type: {
+                    field1: 'text'
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TYPE ${TEST_KEYSPACE}.my_type(field1 int)`).then(() => {
+                cassandraStorage.setUDTSchemas(udtSchemas);
+                cassandraStorage.compareUDTSchemas().on('fieldTypesMismatch', (typeName, fieldName, realType, schemaType) => {
+                    assert.equal(typeName, 'my_type');
+                    assert.equal(fieldName, 'field1');
+                    assert.equal(realType, 'int');
+                    assert.equal(schemaType, 'text');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "done" after UDT comparison has been done', done => {
+            const udtSchemas = {
+                my_type: {
+                    field1: 'text'
+                }
+            };
+
+            cassandraStorage.setTableSchemas(udtSchemas);
+            cassandraStorage.compareUDTSchemas().on('done', done);
+        });
+    });
 });
 
 function dropTestKeyspace(cassandraDriverClient) {

@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const QueryBuilder = require('../../../cassandra/lib/QueryBuilder');
+const QueryBuilder = require('../../../../cassandra/lib/QueryBuilder');
 
 describe('Query Builder', () => {
     it('Should build query with schema matched data', () => {

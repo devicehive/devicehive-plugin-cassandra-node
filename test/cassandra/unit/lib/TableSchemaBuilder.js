@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const TableSchemaBuilder = require('../../../cassandra/lib/TableSchemaBuilder');
+const TableSchemaBuilder = require('../../../../cassandra/lib/TableSchemaBuilder');
 
 describe('Table Schema Builder', () => {
     it('Should build query for table creation with specified fields', () => {
