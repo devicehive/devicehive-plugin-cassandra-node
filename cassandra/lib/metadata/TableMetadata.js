@@ -16,25 +16,33 @@ class TableMetadata extends Metadata {
     }
 
     isSamePrimaryKey(jsonSchema) {
-        const jsonSchemaPrimaryKey = jsonSchema.getPrimaryKey().map(pk => pk.toLowerCase());
-        const metadataPrimaryKey = (this._md.partitionKeys || []).map(pk => pk.name);
-
-        if (jsonSchemaPrimaryKey.length !== metadataPrimaryKey.length) {
-            return false;
-        }
-
-        return jsonSchemaPrimaryKey.every(pk => metadataPrimaryKey.includes(pk));
+        return this._isSameKey('primary', jsonSchema);
     }
 
     isSameClusteringKey(jsonSchema) {
-        const jsonSchemaClusteringKey = jsonSchema.getClusteringKey().map(ck => ck.toLowerCase());
-        const metadataClusteringKey = (this._md.clusteringKeys || []).map(ck => ck.name);
+        return this._isSameKey('clustering', jsonSchema);
+    }
 
-        if (jsonSchemaClusteringKey.length !== metadataClusteringKey.length) {
+    _isSameKey(keyType, jsonSchema) {
+        let jsonSchemaKey;
+        let metadataKey;
+
+        if (keyType === 'primary') {
+            jsonSchemaKey = jsonSchema.getPrimaryKey();
+            metadataKey = this._md.partitionKeys;
+        } else {
+            jsonSchemaKey = jsonSchema.getClusteringKey();
+            metadataKey = this._md.clusteringKeys;
+        }
+
+        jsonSchemaKey = jsonSchemaKey.map(k => k.toLowerCase());
+        metadataKey = (metadataKey || []).map(k => k.name);
+
+        if (jsonSchemaKey.length !== metadataKey.length) {
             return false;
         }
 
-        return jsonSchemaClusteringKey.every(ck => metadataClusteringKey.includes(ck));
+        return jsonSchemaKey.every(k => metadataKey.includes(k));
     }
 }
 
