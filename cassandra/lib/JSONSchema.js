@@ -218,10 +218,20 @@ class JSONSchema {
         return Metadata.create(metadataDescriptor).isSameMembersSchema(this);
     }
 
+    /**
+     * Returns true if schema contains same primary key as metadata
+     * @param metadataDescriptor
+     * @returns {boolean|*}
+     */
     comparePrimaryKeyWithMetadata(metadataDescriptor) {
         return Metadata.create(metadataDescriptor).isSamePrimaryKey(this);
     }
 
+    /**
+     * Returns true if schema contains same clustering key as metadata
+     * @param metadataDescriptor
+     * @returns {boolean|*}
+     */
     compareClusteringKeyWithMetadata(metadataDescriptor) {
         return Metadata.create(metadataDescriptor).isSameClusteringKey(this);
     }
