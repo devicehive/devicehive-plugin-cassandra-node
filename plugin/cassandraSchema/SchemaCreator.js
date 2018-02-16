@@ -33,6 +33,9 @@ class SchemaCreator {
             }).on('primaryKeyMismatch', tableName => {
                 console.log(`TABLE ${tableName}: Mismatched primary key`);
                 ok = false;
+            }).on('clusteringKeyMismatch', tableName => {
+                console.log(`TABLE ${tableName}: Mismatched clustering key`);
+                ok = false;
             }).on('done', () => {
                 if (ok) {
                     resolve();
