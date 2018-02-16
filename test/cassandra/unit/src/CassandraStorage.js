@@ -380,6 +380,39 @@ describe('Cassandra Storage Provider', () => {
         });
     });
 
+    it('Should emit "clusteringKeyMismatch" event if schema has clustering key different from real one', done => {
+        const metadataBuilder = new TableMetadataBuilder().withName('testTable').withIntColumn('col1');
+        metadataBuilder.withIntColumn('col2').withIntColumn('col3').withPrimaryKey('col1').withClusteringKey('col3');
+
+        const metadata = metadataBuilder.build();
+        MockCassandraClient.prototype.metadata.getTable.returns(Promise.resolve(metadata));
+        const cassandra = new CassandraStorage(new MockCassandraClient());
+        const schemas = {
+            testTable: {
+                col1: 'int',
+                col2: 'int',
+                col3: 'int',
+                __primaryKey__: [ 'col1' ],
+                __clusteringKey__: [ 'col2' ]
+            }
+        };
+
+        cassandra.setTableSchemas(schemas);
+        const notifier = cassandra.compareTableSchemas();
+
+        sinon.spy(notifier, 'emit');
+
+        asyncAssertion(() => {
+            assert.equal(notifier.emit.callCount, 3, 'Number of times event was emitted');
+
+            const [ event, tableName ] = notifier.emit.secondCall.args;
+            assert.equal(event, 'clusteringKeyMismatch');
+            assert.equal(tableName, 'testTable');
+
+            done();
+        });
+    });
+
     it('Should emit "customTypeExists" event if user defined type already exists', done => {
         const metadata = new UDTMetadataBuilder().withName('test_udt').withIntField('test_field').build();
         MockCassandraClient.prototype.metadata.getUdt.returns(Promise.resolve(metadata));

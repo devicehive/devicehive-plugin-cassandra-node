@@ -222,6 +222,10 @@ class JSONSchema {
         return Metadata.create(metadataDescriptor).isSamePrimaryKey(this);
     }
 
+    compareClusteringKeyWithMetadata(metadataDescriptor) {
+        return Metadata.create(metadataDescriptor).isSameClusteringKey(this);
+    }
+
     /**
      * Returns array of property types mismatches in schema with metadata
      * @param metadataDescriptor cassandra-driver metadata object
@@ -267,8 +271,20 @@ class JSONSchema {
         return cols;
     }
 
+    /**
+     * Returns primary key columns if primary key is valid
+     * @returns {Array}
+     */
     getPrimaryKey() {
-        return JSONSchema.invalidPrimaryKey(this._schema) ? [] : [].concat(this._schema[JSONSchema.PRIMARY_KEY]);
+        return JSONSchema.validPrimaryKey(this._schema) ? [].concat(this._schema[JSONSchema.PRIMARY_KEY]) : [];
+    }
+
+    /**
+     * Returns clustering key columns if clustering key is valid
+     * @returns {Array}
+     */
+    getClusteringKey() {
+        return JSONSchema.validClusteringKey(this._schema) ? [].concat(this._schema[JSONSchema.CLUSTERING_KEY]) : [];
     }
 
     /**
@@ -303,7 +319,16 @@ class JSONSchema {
      * @returns {boolean}
      */
     static invalidPrimaryKey(schema) {
-        return !schema.hasOwnProperty(JSONSchema.PRIMARY_KEY) || !schema[JSONSchema.PRIMARY_KEY].length;
+        return !JSONSchema.validPrimaryKey(schema);
+    }
+
+    /**
+     * Returns true if primary key of schema is valid
+     * @param schema
+     * @returns {boolean}
+     */
+    static validPrimaryKey(schema) {
+        return Utils.isNotEmpty(schema[JSONSchema.PRIMARY_KEY]);
     }
 
     /**
@@ -312,7 +337,7 @@ class JSONSchema {
      * @returns {boolean}
      */
     static validClusteringKey(schema) {
-        return schema.hasOwnProperty(JSONSchema.CLUSTERING_KEY) && schema[JSONSchema.CLUSTERING_KEY].length;
+        return Utils.isNotEmpty(schema[JSONSchema.CLUSTERING_KEY]);
     }
 }
 

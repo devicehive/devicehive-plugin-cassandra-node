@@ -49,6 +49,15 @@ class Metadata {
     }
 
     /**
+     * Returns true if schema has same clustering key as metadata
+     * @param jsonSchema
+     * @returns {boolean}
+     */
+    isSameClusteringKey(jsonSchema) {
+        return true;
+    }
+
+    /**
      * Returns true if JSON schema is the same as metadata of real schema (contains same members)
      * @param {JSONSchema} jsonSchema
      * @param {Array<string>} metadataProps Array of member names of structure (table or UDT)

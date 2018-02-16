@@ -274,6 +274,10 @@ class CassandraStorage {
                 if (!schema.comparePrimaryKeyWithMetadata(md)) {
                     notifier.notifyPrimaryKeyMismatch(name);
                 }
+
+                if (!schema.compareClusteringKeyWithMetadata(md)) {
+                    notifier.notifyClusteringKeyMismatch(name);
+                }
             });
         });
 

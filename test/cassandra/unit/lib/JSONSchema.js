@@ -177,6 +177,36 @@ describe('JSON Schema', () => {
         assert.equal(schema.comparePrimaryKeyWithMetadata(metadata), false);
     });
 
+    it('Should return true if schema clustering key is same as clustering key in given metadata object', () => {
+        const schema = new JSONSchema({
+            col1: 'int',
+            col2: 'int',
+            col3: 'int',
+            __primaryKey__: [ 'col1' ],
+            __clusteringKey__: [ 'col2', 'col3' ]
+        });
+        const metadataBuilder = new TableMetadataBuilder().withIntColumn('col1');
+        metadataBuilder.withIntColumn('col2').withPrimaryKey('col1').withClusteringKey('col2', 'col3');
+        const metadata = metadataBuilder.build();
+
+        assert.equal(schema.compareClusteringKeyWithMetadata(metadata), true);
+    });
+
+    it('Should return false if schema clustering key is NOT same as clustering key in given metadata object', () => {
+        const schema = new JSONSchema({
+            col1: 'int',
+            col2: 'int',
+            col3: 'int',
+            __primaryKey__: [ 'col2' ],
+            __clusteringKey__: [ 'col1' ]
+        });
+        const metadataBuilder = new TableMetadataBuilder().withIntColumn('col1');
+        metadataBuilder.withIntColumn('col2').withPrimaryKey('col2').withClusteringKey('col2', 'col3');
+        const metadata = metadataBuilder.build();
+
+        assert.equal(schema.compareClusteringKeyWithMetadata(metadata), false);
+    });
+
     it('Should return array of mismatches in case some column types of schema do not match columns in metadata', () => {
         const schema = new JSONSchema({
             id: 'int',

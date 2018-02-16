@@ -25,6 +25,17 @@ class TableMetadata extends Metadata {
 
         return jsonSchemaPrimaryKey.every(pk => metadataPrimaryKey.includes(pk));
     }
+
+    isSameClusteringKey(jsonSchema) {
+        const jsonSchemaClusteringKey = jsonSchema.getClusteringKey().map(ck => ck.toLowerCase());
+        const metadataClusteringKey = (this._md.clusteringKeys || []).map(ck => ck.name);
+
+        if (jsonSchemaClusteringKey.length !== metadataClusteringKey.length) {
+            return false;
+        }
+
+        return jsonSchemaClusteringKey.every(ck => metadataClusteringKey.includes(ck));
+    }
 }
 
 module.exports = TableMetadata;
