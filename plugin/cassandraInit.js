@@ -70,6 +70,9 @@ function schemaComparison(cassandra) {
         }).on('columnTypesMismatch', (tableName, colName, realType, schemaType) => {
             console.log(`TABLE ${tableName}: Mismatched ${colName} type, actual "${realType}", in JSON schema "${schemaType}"`);
             ok = false;
+        }).on('primaryKeyMismatch', tableName => {
+            console.log(`TABLE ${tableName}: Mismatched primary key`);
+            ok = false;
         }).on('done', () => {
             if (ok) {
                 resolve();
