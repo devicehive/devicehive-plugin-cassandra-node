@@ -2,8 +2,15 @@ const cassandraConfig = require(`./config`).cassandra;
 const cassandraTables = require('../cassandraSchemas/cassandra-tables');
 const cassandraUDTs = require('../cassandraSchemas/cassandra-user-types');
 const CassandraStorage = require('../cassandra');
+const SchemaValidator = require('./cassandraSchema/SchemaValidator');
 
-function initCassandra() {
+module.exports = () => {
+    const errors = SchemaValidator.getSchemasErrors(cassandraTables.tables);
+
+    if (errors.length) {
+        return Promise.reject(errors);
+    }
+
     return CassandraStorage.connect(cassandraConfig).then(cassandra => {
         cassandra.setUDTSchemas(cassandraUDTs)
             .setTableSchemas(cassandraTables.tables)
@@ -13,7 +20,7 @@ function initCassandra() {
 
         return schemaComparison(cassandra);
     }).then(cassandra => ensureSchemasExist(cassandra));
-}
+};
 
 function ensureSchemasExist(cassandra) {
     return new Promise((resolve, reject) => {
@@ -92,5 +99,3 @@ function schemaComparison(cassandra) {
 
     return Promise.all([ tableComparison, udtComparison ]).then(() => cassandra);
 }
-
-module.exports = initCassandra;
