@@ -1,13 +1,12 @@
 const cassandraConfig = require('../config').cassandra;
-const cassandraTables = require('../../cassandraSchemas/cassandra-tables');
+const cassandraTables = require('../../cassandraSchemas/cassandra-tables').tables;
 const cassandraUDTs = require('../../cassandraSchemas/cassandra-user-types');
-const CassandraStorage = require('../../cassandra/index');
-const SchemaCreator = require('./SchemaCreator');
 const SchemaValidator = require('./SchemaValidator');
+const createSchema = require('./createSchema');
 
-exitIfInvalid(cassandraTables.tables);
+exitIfInvalid(cassandraTables);
 
-createSchema().then(() => {
+createSchema(cassandraConfig, cassandraUDTs, cassandraTables).then(() => {
     console.log('Cassandra schemas have been created');
     process.exit(0);
 }).catch(err => {
@@ -15,19 +14,6 @@ createSchema().then(() => {
     console.error(err);
     process.exit(1);
 });
-
-function createSchema() {
-    const schemas = {
-        udt: cassandraUDTs,
-        tables: cassandraTables.tables
-    };
-    let schemaCreator;
-
-    return CassandraStorage.connect(cassandraConfig).then(cassandra => {
-        schemaCreator = new SchemaCreator(cassandra);
-        return schemaCreator.dropBeforeCreate(schemas);
-    }).then(() => schemaCreator.create(schemas));
-}
 
 function exitIfInvalid(schemas) {
     const errors = SchemaValidator.getSchemasErrors(schemas);

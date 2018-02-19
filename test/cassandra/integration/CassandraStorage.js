@@ -12,7 +12,7 @@ const CONFIG = {
 describe('Integration tests: Cassandra Storage', function() {
     this.timeout(5000);
 
-    let cassandraDriverClient = new cassandraDriver.Client(CONFIG);
+    const cassandraDriverClient = new cassandraDriver.Client(CONFIG);
     let cassandraStorage;
 
     before(async () => {
