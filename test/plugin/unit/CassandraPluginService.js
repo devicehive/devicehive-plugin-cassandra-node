@@ -46,7 +46,7 @@ describe('Plugin', () => {
     });
 
     it('Should fail application if Cassandra initialization failed', done => {
-        const plugin = new CassandraPluginService();
+        const plugin = new CassandraPluginService(cassandraConfig);
 
         sinon.stub(process, 'exit');
         sinon.stub(plugin, 'initCassandra').returns(Promise.reject('error'));
@@ -63,7 +63,7 @@ describe('Plugin', () => {
     });
 
     it('Should set schemas of Cassandra user defined types and tables after start', done => {
-        const plugin = new CassandraPluginService();
+        const plugin = new CassandraPluginService(cassandraConfig);
 
         plugin.afterStart();
 
@@ -75,7 +75,7 @@ describe('Plugin', () => {
     });
 
     it('Should assign tables to each group after start', done => {
-        const plugin = new CassandraPluginService();
+        const plugin = new CassandraPluginService(cassandraConfig);
 
         plugin.afterStart();
 
@@ -93,7 +93,7 @@ describe('Plugin', () => {
             command: 'command name'
         }).build();
 
-        const plugin = new CassandraPluginService();
+        const plugin = new CassandraPluginService(cassandraConfig);
         sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
 
         plugin.afterStart();
@@ -119,7 +119,7 @@ describe('Plugin', () => {
         const commandsUpdatesStoring = conf.CUSTOM.COMMAND_UPDATES_STORING;
         conf.CUSTOM.COMMAND_UPDATES_STORING = true;
 
-        const plugin = new CassandraPluginService();
+        const plugin = new CassandraPluginService(cassandraConfig);
         sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
 
         plugin.afterStart();
@@ -147,7 +147,7 @@ describe('Plugin', () => {
         const commandsUpdatesStoring = conf.CUSTOM.COMMAND_UPDATES_STORING;
         conf.CUSTOM.COMMAND_UPDATES_STORING = false;
 
-        const plugin = new CassandraPluginService();
+        const plugin = new CassandraPluginService(cassandraConfig);
         sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
 
         plugin.afterStart();
@@ -170,7 +170,7 @@ describe('Plugin', () => {
             notification: 'notification name'
         }).build();
 
-        const plugin = new CassandraPluginService();
+        const plugin = new CassandraPluginService(cassandraConfig);
         sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
 
         plugin.afterStart();

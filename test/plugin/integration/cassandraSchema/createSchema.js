@@ -1,9 +1,8 @@
 const assert = require('assert');
-const sinon = require('sinon');
 
 const cassandraDriver = require('cassandra-driver');
 
-const TEST_KEYSPACE = 'plugin_integration_tests';
+const TEST_KEYSPACE = 'plugin_schema_creation_integration_tests';
 const CASSANDRA_CONFIG = {
     CONNECTION: {
         CONTACT_POINTS: '127.0.0.1',
@@ -19,7 +18,6 @@ describe('Integration tests: Schema Creation', function() {
 
     let createSchema;
     const cassandraDriverClient = new cassandraDriver.Client(CASSANDRA_DRIVER_CONFIG);
-    const sinonSandbox = sinon.createSandbox();
 
     before(async () => {
         await cassandraDriverClient.connect();
@@ -31,10 +29,6 @@ describe('Integration tests: Schema Creation', function() {
 
         delete require.cache[require.resolve('../../../../plugin/cassandraSchema/createSchema')];
         createSchema = require('../../../../plugin/cassandraSchema/createSchema');
-    });
-
-    afterEach(() => {
-        sinonSandbox.restore();
     });
 
     after(async () => {

@@ -1,12 +1,20 @@
 const PluginService = require('./PluginService');
 const cassandraInit = require('./cassandraInit');
 
-const cassandraConfig = require(`./config`).cassandra;
-
 /**
  * Cassandra Plugin main class
  */
 class CassandraPluginService extends PluginService {
+    constructor(cassandraConfig) {
+        if (typeof cassandraConfig !== 'object') {
+            throw new TypeError('First argument of CassandraPluginService constructor must be Cassandra config object');
+        }
+
+        super();
+
+        this._cassandraConf = cassandraConfig;
+        this._enableCommandUpdatesStoring = cassandraConfig.CUSTOM.COMMAND_UPDATES_STORING;
+    }
 
     /**
      * After plugin starts hook
@@ -30,7 +38,7 @@ class CassandraPluginService extends PluginService {
 
     handleCommandUpdate(command) {
         super.handleCommandUpdate(command);
-        if (cassandraConfig.CUSTOM.COMMAND_UPDATES_STORING) {
+        if (this.isCommandUpdatesStoringEnabled()) {
             this.cassandra.insertCommandUpdate(command);
         } else {
             this.cassandra.updateCommand(command);
@@ -43,7 +51,11 @@ class CassandraPluginService extends PluginService {
     }
 
     initCassandra() {
-        return cassandraInit();
+        return cassandraInit(this._cassandraConf);
+    }
+
+    isCommandUpdatesStoringEnabled() {
+        return Boolean(this._enableCommandUpdatesStoring);
     }
 }
 
