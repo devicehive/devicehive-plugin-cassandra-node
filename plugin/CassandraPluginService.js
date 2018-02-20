@@ -2,14 +2,15 @@ const PluginService = require('./PluginService');
 const cassandraTables = require('../cassandraSchemas/cassandra-tables');
 const cassandraUDTs = require('../cassandraSchemas/cassandra-user-types');
 const cassandraInit = require('./cassandraInit');
+const Utils = require('./Utils');
 
 /**
  * Cassandra Plugin main class
  */
 class CassandraPluginService extends PluginService {
     constructor(cassandraConfig) {
-        if (typeof cassandraConfig !== 'object') {
-            throw new TypeError('First argument of CassandraPluginService constructor must be Cassandra config object');
+        if (Utils.isNotObject(cassandraConfig)) {
+            throw new TypeError('First argument of CassandraPluginService constructor must be Cassandra config plain object');
         }
 
         super();
