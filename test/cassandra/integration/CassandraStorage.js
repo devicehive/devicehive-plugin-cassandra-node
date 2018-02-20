@@ -313,6 +313,44 @@ describe('Integration tests: Cassandra Storage', function() {
             });
         });
 
+        it('Should emit "primaryKeyMismatch" event with table name if table defined in schema has different primary key', done => {
+            const tableSchemas = {
+                my_table: {
+                    col1: 'int',
+                    col2: 'int',
+                    __primaryKey__: [ 'col1' ]
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TABLE ${TEST_KEYSPACE}.my_table(col1 int, col2 int PRIMARY KEY)`).then(() => {
+                cassandraStorage.setTableSchemas(tableSchemas);
+                cassandraStorage.compareTableSchemas().on('primaryKeyMismatch', tableName => {
+                    assert.equal(tableName, 'my_table');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "clusteringKeyMismatch" event with table name if table defined in schema has different primary key', done => {
+            const tableSchemas = {
+                my_table: {
+                    col1: 'int',
+                    col2: 'int',
+                    col3: 'int',
+                    __primaryKey__: [ 'col1' ],
+                    __clusteringKey__: [ 'col2' ]
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TABLE ${TEST_KEYSPACE}.my_table(col1 int, col2 int, col3 int, PRIMARY KEY((col1), col3))`).then(() => {
+                cassandraStorage.setTableSchemas(tableSchemas);
+                cassandraStorage.compareTableSchemas().on('clusteringKeyMismatch', tableName => {
+                    assert.equal(tableName, 'my_table');
+                    done();
+                });
+            });
+        });
+
         it('Should emit "done" after table comparison has been done', done => {
             const tableSchemas = {
                 my_table: {
