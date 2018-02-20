@@ -24,7 +24,9 @@
     "scripts": {
         "start": "node ./plugin/index.js",
         "schema": "node ./plugin/cassandraSchema/index.js",
-        "test": "./node_modules/.bin/mocha --recursive"
+        "test": "./node_modules/.bin/mocha --recursive --exit ./test/*/unit/**/*.js",
+        "test-i": "./node_modules/.bin/mocha --recursive --exit ./test/*/integration/**/*.js"
+
     },
     "author": "Alexei Torunov",
     "license": "Apache-2.0"

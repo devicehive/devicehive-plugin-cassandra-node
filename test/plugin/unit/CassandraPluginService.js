@@ -1,11 +1,11 @@
 const assert = require('assert');
 const sinon = require('sinon');
 
-const MessageBuilder = require('./dataBuilders/MessageBuilder');
+const MessageBuilder = require('../dataBuilders/MessageBuilder');
 
-const cassandraConfig = require('../../plugin/config').cassandra;
-const cassandraStorage = require('../../cassandra');
-const CassandraPluginService = require('../../plugin/CassandraPluginService');
+const cassandraConfig = require('../../../plugin/config').cassandra;
+const cassandraStorage = require('../../../cassandra/index');
+const CassandraPluginService = require('../../../plugin/CassandraPluginService');
 
 describe('Plugin', () => {
     let cassandra;
@@ -115,7 +115,7 @@ describe('Plugin', () => {
             isUpdated: true
         }).build();
 
-        const conf = require('../../plugin/config').cassandra;
+        const conf = require('../../../plugin/config').cassandra;
         const commandsUpdatesStoring = conf.CUSTOM.COMMAND_UPDATES_STORING;
         conf.CUSTOM.COMMAND_UPDATES_STORING = true;
 
@@ -143,7 +143,7 @@ describe('Plugin', () => {
             isUpdated: true
         }).build();
 
-        const conf = require('../../plugin/config').cassandra;
+        const conf = require('../../../plugin/config').cassandra;
         const commandsUpdatesStoring = conf.CUSTOM.COMMAND_UPDATES_STORING;
         conf.CUSTOM.COMMAND_UPDATES_STORING = false;
 

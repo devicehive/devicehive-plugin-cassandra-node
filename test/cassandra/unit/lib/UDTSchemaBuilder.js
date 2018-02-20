@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const UDTSchemaBuilder = require('../../../cassandra/lib/UDTSchemaBuilder');
+const UDTSchemaBuilder = require('../../../../cassandra/lib/UDTSchemaBuilder');
 
 describe('User Defined Type Builder', () => {
     it('Should build query for UDT creation', () => {

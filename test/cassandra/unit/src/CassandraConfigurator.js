@@ -3,7 +3,7 @@ const assert = require('assert');
 const cassandraDriver = require('cassandra-driver');
 const { policies: cassandraPolicies } = cassandraDriver;
 
-const CassandraConfigurator = require('../../../cassandra/src/CassandraConfigurator');
+const CassandraConfigurator = require('../../../../cassandra/src/CassandraConfigurator');
 
 describe('Cassandra Config', () => {
     it('Should create authentication provider instance (authProvider property) if username and password are defined', () => {

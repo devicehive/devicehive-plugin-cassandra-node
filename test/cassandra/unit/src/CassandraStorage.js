@@ -1,10 +1,10 @@
 const assert = require('assert');
 const sinon = require('sinon');
 
-const TableMetadataBuilder = require('../dataBuilders/TableMetadataBuilder');
-const UDTMetadataBuilder = require('../dataBuilders/UDTMetadataBuilder');
-const TablesBuilder = require('../dataBuilders/TablesBuilder');
-const CassandraStorage = require('../../../cassandra/src/CassandraStorage');
+const TableMetadataBuilder = require('../../dataBuilders/TableMetadataBuilder');
+const UDTMetadataBuilder = require('../../dataBuilders/UDTMetadataBuilder');
+const TablesBuilder = require('../../dataBuilders/TablesBuilder');
+const CassandraStorage = require('../../../../cassandra/src/CassandraStorage');
 
 describe('Cassandra Storage Provider', () => {
     const MockCassandraClient = class {};
