@@ -1,21 +1,19 @@
-const cassandraTables = require('../cassandraSchemas/cassandra-tables');
-const cassandraUDTs = require('../cassandraSchemas/cassandra-user-types');
 const CassandraStorage = require('../cassandra');
 const SchemaValidator = require('./cassandraSchema/SchemaValidator');
 
-module.exports = (cassandraConfig) => {
-    const errors = SchemaValidator.getSchemasErrors(cassandraTables.tables);
+module.exports = (cassandraConfig, { tables, udts }) => {
+    const errors = SchemaValidator.getSchemasErrors(tables.tables);
 
     if (errors.length) {
         return Promise.reject(errors);
     }
 
     return CassandraStorage.connect(cassandraConfig).then(cassandra => {
-        cassandra.setUDTSchemas(cassandraUDTs)
-            .setTableSchemas(cassandraTables.tables)
-            .assignTablesToCommands(...cassandraTables.commandTables)
-            .assignTablesToCommandUpdates(...cassandraTables.commandUpdatesTables)
-            .assignTablesToNotifications(...cassandraTables.notificationTables);
+        cassandra.setUDTSchemas(udts)
+            .setTableSchemas(tables.tables)
+            .assignTablesToCommands(...tables.commandTables)
+            .assignTablesToCommandUpdates(...tables.commandUpdatesTables)
+            .assignTablesToNotifications(...tables.notificationTables);
 
         return schemaComparison(cassandra);
     }).then(cassandra => ensureSchemasExist(cassandra, cassandraConfig));

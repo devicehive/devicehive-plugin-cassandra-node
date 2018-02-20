@@ -1,4 +1,6 @@
 const PluginService = require('./PluginService');
+const cassandraTables = require('../cassandraSchemas/cassandra-tables');
+const cassandraUDTs = require('../cassandraSchemas/cassandra-user-types');
 const cassandraInit = require('./cassandraInit');
 
 /**
@@ -22,7 +24,12 @@ class CassandraPluginService extends PluginService {
     afterStart() {
         super.afterStart();
 
-        this.initCassandra().then(cassandra => {
+        const schemas = {
+            udts: cassandraUDTs,
+            tables: cassandraTables
+        };
+
+        this.initCassandra(this._cassandraConf, schemas).then(cassandra => {
             this.cassandra = cassandra;
             console.log('Cassandra connection initialized');
         }).catch(err => {
@@ -50,8 +57,8 @@ class CassandraPluginService extends PluginService {
         this.cassandra.insertNotification(notification);
     }
 
-    initCassandra() {
-        return cassandraInit(this._cassandraConf);
+    initCassandra(conf, { udts, tables }) {
+        return cassandraInit(conf, { udts, tables });
     }
 
     isCommandUpdatesStoringEnabled() {
