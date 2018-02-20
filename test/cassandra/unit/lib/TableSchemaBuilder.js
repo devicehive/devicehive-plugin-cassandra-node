@@ -10,7 +10,7 @@ describe('Table Schema Builder', () => {
             bigIntField: 'bigint',
             floatField: 'float',
             __primaryKey__: [ 'textField', 'bigIntField' ],
-            __clusteredKey__: [ 'floatField' ]
+            __clusteringKey__: [ 'floatField' ]
         };
         const builder = new TableSchemaBuilder();
 
@@ -20,7 +20,7 @@ describe('Table Schema Builder', () => {
         assert.equal(query, 'CREATE TABLE my_table(textField text,bigIntField bigint,floatField float,PRIMARY KEY((textField,bigIntField),floatField))');
     });
 
-    it('Should build query without clustered key if it does not specified', () => {
+    it('Should build query without clustering key if it does not specified', () => {
         const tableSchema = {
             textField: 'text',
             bigIntField: 'bigint',
@@ -34,12 +34,12 @@ describe('Table Schema Builder', () => {
         assert.equal(query, 'CREATE TABLE my_table(textField text,bigIntField bigint,PRIMARY KEY((bigIntField)))');
     });
 
-    it('Should build query without clustered key if it is zero-length property', () => {
+    it('Should build query without clustering key if it is zero-length property', () => {
         const tableSchema = {
             textField: 'text',
             bigIntField: 'bigint',
             __primaryKey__: [ 'bigIntField' ],
-            __clusteredKey__: []
+            __clusteringKey__: []
         };
 
         const builder = new TableSchemaBuilder();
@@ -67,7 +67,7 @@ describe('Table Schema Builder', () => {
             col2: 'int',
             col3: 'int',
             __primaryKey__: [ 'col1' ],
-            __clusteredKey__: [ 'col2', 'col3' ],
+            __clusteringKey__: [ 'col2', 'col3' ],
             __order__: {
                 col2: 'ASC',
                 col3: 'DESC'
@@ -110,7 +110,7 @@ describe('Table Schema Builder', () => {
             col1: 'int',
             col2: 'int',
             __primaryKey__: [ 'col1' ],
-            __clusteredKey__: [ 'col2' ],
+            __clusteringKey__: [ 'col2' ],
             __options__: {
                 bloom_filter_fp_chance: 0.1
             },

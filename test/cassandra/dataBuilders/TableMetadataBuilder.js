@@ -1,6 +1,23 @@
 const DataBuilder = require('smp-data-builder');
 
 class TableMetadataBuilder extends DataBuilder {
+    withClusteringKey(...colNames) {
+        return this.withKey('clustering', ...colNames);
+
+    }
+
+    withPrimaryKey(...colNames) {
+        return this.withKey('partition', ...colNames);
+    }
+
+    withKey(keyType, ...colNames) {
+        colNames.forEach(col => {
+            this.with(`${keyType}Keys`, [ { name: col } ]);
+        });
+
+        return this;
+    }
+
     withColumnTypeOption(columnName, optName, optVal) {
         const type = this.obj.columnsByName[columnName].type;
 
