@@ -3,6 +3,7 @@ const cassandraTables = require('../../cassandraSchemas/cassandra-tables');
 const cassandraUDTs = require('../../cassandraSchemas/cassandra-user-types');
 const CassandraStorage = require('../../cassandra/index');
 const SchemaCreator = require('./SchemaCreator');
+const SchemaValidator = require('./SchemaValidator');
 
 exitIfInvalid(cassandraTables.tables);
 
@@ -29,7 +30,7 @@ function createSchema() {
 }
 
 function exitIfInvalid(schemas) {
-    const errors = SchemaCreator.getSchemasErrors(schemas);
+    const errors = SchemaValidator.getSchemasErrors(schemas);
 
     errors.forEach(err => console.error(err.toString()));
 
