@@ -73,6 +73,9 @@ function schemaComparison(cassandra) {
         }).on('clusteringKeyMismatch', tableName => {
             console.log(`TABLE ${tableName}: Mismatched clustering key`);
             ok = false;
+        }).on('clusteringOrderMismatch', tableName => {
+            console.log(`TABLE ${tableName}: Mismatched clustering order`);
+            ok = false;
         }).on('done', () => {
             if (ok) {
                 resolve();
