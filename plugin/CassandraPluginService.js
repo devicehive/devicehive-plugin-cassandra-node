@@ -1,12 +1,23 @@
 const PluginService = require('./PluginService');
+const cassandraTables = require('../cassandraSchemas/cassandra-tables');
+const cassandraUDTs = require('../cassandraSchemas/cassandra-user-types');
 const cassandraInit = require('./cassandraInit');
-
-const cassandraConfig = require(`./config`).cassandra;
+const Utils = require('./Utils');
 
 /**
  * Cassandra Plugin main class
  */
 class CassandraPluginService extends PluginService {
+    constructor(cassandraConfig) {
+        if (Utils.isNotObject(cassandraConfig)) {
+            throw new TypeError('First argument of CassandraPluginService constructor must be Cassandra config plain object');
+        }
+
+        super();
+
+        this._cassandraConf = cassandraConfig;
+        this._enableCommandUpdatesStoring = cassandraConfig.CUSTOM.COMMAND_UPDATES_STORING;
+    }
 
     /**
      * After plugin starts hook
@@ -14,7 +25,12 @@ class CassandraPluginService extends PluginService {
     afterStart() {
         super.afterStart();
 
-        this.initCassandra().then(cassandra => {
+        const schemas = {
+            udts: cassandraUDTs,
+            tables: cassandraTables
+        };
+
+        this.initCassandra(this._cassandraConf, schemas).then(cassandra => {
             this.cassandra = cassandra;
             console.log('Cassandra connection initialized');
         }).catch(err => {
@@ -30,7 +46,7 @@ class CassandraPluginService extends PluginService {
 
     handleCommandUpdate(command) {
         super.handleCommandUpdate(command);
-        if (cassandraConfig.CUSTOM.COMMAND_UPDATES_STORING) {
+        if (this.isCommandUpdatesStoringEnabled()) {
             this.cassandra.insertCommandUpdate(command);
         } else {
             this.cassandra.updateCommand(command);
@@ -42,8 +58,12 @@ class CassandraPluginService extends PluginService {
         this.cassandra.insertNotification(notification);
     }
 
-    initCassandra() {
-        return cassandraInit();
+    initCassandra(conf, { udts, tables }) {
+        return cassandraInit(conf, { udts, tables });
+    }
+
+    isCommandUpdatesStoringEnabled() {
+        return Boolean(this._enableCommandUpdatesStoring);
     }
 }
 

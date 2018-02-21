@@ -12,7 +12,7 @@ const CONFIG = {
 describe('Integration tests: Cassandra Storage', function() {
     this.timeout(5000);
 
-    let cassandraDriverClient = new cassandraDriver.Client(CONFIG);
+    const cassandraDriverClient = new cassandraDriver.Client(CONFIG);
     let cassandraStorage;
 
     before(async () => {
@@ -308,6 +308,44 @@ describe('Integration tests: Cassandra Storage', function() {
                     assert.equal(colName, 'col1');
                     assert.equal(realType, 'int');
                     assert.equal(schemaType, 'text');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "primaryKeyMismatch" event with table name if table defined in schema has different primary key', done => {
+            const tableSchemas = {
+                my_table: {
+                    col1: 'int',
+                    col2: 'int',
+                    __primaryKey__: [ 'col1' ]
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TABLE ${TEST_KEYSPACE}.my_table(col1 int, col2 int PRIMARY KEY)`).then(() => {
+                cassandraStorage.setTableSchemas(tableSchemas);
+                cassandraStorage.compareTableSchemas().on('primaryKeyMismatch', tableName => {
+                    assert.equal(tableName, 'my_table');
+                    done();
+                });
+            });
+        });
+
+        it('Should emit "clusteringKeyMismatch" event with table name if table defined in schema has different primary key', done => {
+            const tableSchemas = {
+                my_table: {
+                    col1: 'int',
+                    col2: 'int',
+                    col3: 'int',
+                    __primaryKey__: [ 'col1' ],
+                    __clusteringKey__: [ 'col2' ]
+                }
+            };
+
+            cassandraDriverClient.execute(`CREATE TABLE ${TEST_KEYSPACE}.my_table(col1 int, col2 int, col3 int, PRIMARY KEY((col1), col3))`).then(() => {
+                cassandraStorage.setTableSchemas(tableSchemas);
+                cassandraStorage.compareTableSchemas().on('clusteringKeyMismatch', tableName => {
+                    assert.equal(tableName, 'my_table');
                     done();
                 });
             });

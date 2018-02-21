@@ -16,6 +16,25 @@ class Utils {
     static isEmpty(val) {
         return !val || !val.length;
     }
+
+    /**
+     * Returns true if argument is NOT object
+     * @param val
+     * @returns {boolean}
+     */
+    static isNotObject(val) {
+        return !Utils.isObject(val);
+    }
+
+    /**
+     * Returns true if argument is object
+     * @param val
+     * @returns {boolean}
+     */
+    static isObject(val) {
+        const type = typeof val;
+        return val !== null && (type === 'object');
+    }
 }
 
 module.exports = Utils;
