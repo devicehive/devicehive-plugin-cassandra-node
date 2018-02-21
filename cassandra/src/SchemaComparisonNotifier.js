@@ -6,6 +6,7 @@ class SchemaComparisonNotifier extends EventEmitter {
         this._notificationEvents = { ...events };
         this._notificationEvents.primaryKeyMismatch = 'primaryKeyMismatch';
         this._notificationEvents.clusteringKeyMismatch = 'clusteringKeyMismatch';
+        this._notificationEvents.clusteringOrderMismatch = 'clusteringOrderMismatch';
     }
 
     notifyExistence(name) {
@@ -26,6 +27,10 @@ class SchemaComparisonNotifier extends EventEmitter {
 
     notifyClusteringKeyMismatch(name) {
         return this.emit(this._notificationEvents.clusteringKeyMismatch, name);
+    }
+
+    notifyClusteringOrderMismatch(name) {
+        return this.emit(this._notificationEvents.clusteringOrderMismatch, name);
     }
 }
 

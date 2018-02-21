@@ -207,6 +207,46 @@ describe('JSON Schema', () => {
         assert.equal(schema.compareClusteringKeyWithMetadata(metadata), false);
     });
 
+    it('Should return true if schema table ordering is same as ordering in given metadata object', () => {
+        const schema = new JSONSchema({
+            col1: 'int',
+            col2: 'int',
+            col3: 'int',
+            __primaryKey__: [ 'col1' ],
+            __clusteringKey__: [ 'col2', 'col3' ],
+            __order__: {
+                col3: 'DESC'
+            }
+        });
+
+        const metadataBuilder = new TableMetadataBuilder().withIntColumn('col1').withIntColumn('col2');
+        metadataBuilder.withPrimaryKey('col1').withClusteringKey('col2').withOrdering('ASC');
+        metadataBuilder.withClusteringKey('col3').withOrdering('DESC');
+        const metadata = metadataBuilder.build();
+
+        assert.equal(schema.compareOrderingWithMetadata(metadata), true);
+    });
+
+    it('Should return false if schema table ordering is NOT same as ordering in given metadata object', () => {
+        const schema = new JSONSchema({
+            col1: 'int',
+            col2: 'int',
+            col3: 'int',
+            __primaryKey__: [ 'col1' ],
+            __clusteringKey__: [ 'col2', 'col3' ],
+            __order__: {
+                col2: 'DESC'
+            }
+        });
+
+        const metadataBuilder = new TableMetadataBuilder().withIntColumn('col1').withIntColumn('col2');
+        metadataBuilder.withPrimaryKey('col1').withClusteringKey('col2').withOrdering('ASC');
+        metadataBuilder.withClusteringKey('col3').withOrdering('ASC');
+        const metadata = metadataBuilder.build();
+
+        assert.equal(schema.compareOrderingWithMetadata(metadata), false);
+    });
+
     it('Should return array of mismatches in case some column types of schema do not match columns in metadata', () => {
         const schema = new JSONSchema({
             id: 'int',

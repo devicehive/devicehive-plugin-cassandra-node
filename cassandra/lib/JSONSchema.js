@@ -237,6 +237,15 @@ class JSONSchema {
     }
 
     /**
+     * Returns true if schema contains same ordering as metadata
+     * @param metadataDescriptor
+     * @returns {boolean|*}
+     */
+    compareOrderingWithMetadata(metadataDescriptor) {
+        return Metadata.create(metadataDescriptor).isSameOrdering(this);
+    }
+
+    /**
      * Returns array of property types mismatches in schema with metadata
      * @param metadataDescriptor cassandra-driver metadata object
      * @returns {Array}
@@ -295,6 +304,10 @@ class JSONSchema {
      */
     getClusteringKey() {
         return JSONSchema.validClusteringKey(this._schema) ? [].concat(this._schema[JSONSchema.CLUSTERING_KEY]) : [];
+    }
+
+    getOrder() {
+        return Utils.copy(this._schema[JSONSchema.ORDER]);
     }
 
     /**
