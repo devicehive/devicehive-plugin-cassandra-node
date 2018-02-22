@@ -110,7 +110,12 @@ class QueryBuilder {
     build() {
         this._constructWhereCondition();
         this._fillQueryWithValues();
-        return this._query.build();
+
+        const cql = this._query.build();
+
+        this._cleanValues();
+
+        return cql;
     }
 
     /**
@@ -150,8 +155,6 @@ class QueryBuilder {
                 this._value(key, queryParams[key]);
             }
         }
-
-        this._queryParams = {};
     }
 
     _value(key, val) {
@@ -159,6 +162,18 @@ class QueryBuilder {
             this._query.value(key, val);
         } else if (this._query.command.name === 'UPDATE') {
             this._query.set(key, val);
+        }
+
+        return this;
+    }
+
+    _cleanValues() {
+        if (this._query.command.name === 'INSERT') {
+            this._query.exps.value = [];
+            this._query.vals.value = [];
+        } else if (this._query.command.name === 'UPDATE') {
+            this._query.exps.set = [];
+            this._query.vals.set = [];
         }
 
         return this;

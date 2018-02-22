@@ -22,6 +22,31 @@ describe('Query Builder', () => {
         assert.deepEqual(cql.params, [ 1, 2 ]);
     });
 
+    it('It should build query with another JSON schema if it has been changed', () => {
+        const schema1 = {
+            col1: 'int',
+            col2: 'int',
+            __primaryKey__: [ 'col1' ]
+        };
+        const schema2 = {
+            col3: 'int',
+            __primaryKey__: [ 'col3' ]
+        };
+        const data = {
+            col1: 1,
+            col2: 2,
+            col3: 3
+        };
+
+        const builder = new QueryBuilder().insertInto('table').queryParams(data).withJSONSchema(schema1);
+        builder.build();
+
+        const cql = builder.withJSONSchema(schema2).build();
+
+        assert.equal(cql.query, 'INSERT INTO table (col3) VALUES (?)');
+        assert.deepEqual(cql.params, [ 3 ]);
+    });
+
     it('Should build query with UDT value', () => {
         const schema = {
             col1: 'int',
