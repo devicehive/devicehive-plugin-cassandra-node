@@ -1,6 +1,10 @@
 const DataBuilder = require('smp-data-builder');
 
 class TableMetadataBuilder extends DataBuilder {
+    withOrdering(order) {
+        return this.with('clusteringOrder', [ order ]);
+    }
+
     withClusteringKey(...colNames) {
         return this.withKey('clustering', ...colNames);
 
