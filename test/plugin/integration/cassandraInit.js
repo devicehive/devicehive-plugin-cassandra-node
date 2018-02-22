@@ -6,14 +6,14 @@ const cassandraSetup = require('./cassandraSetup');
 
 const TEST_KEYSPACE = 'plugin_integration_tests';
 const CASSANDRA_CONFIG = {
-    CONNECTION: {
-        CONTACT_POINTS: '127.0.0.1',
-        KEYSPACE: TEST_KEYSPACE
+    connection: {
+        contactPoints: '127.0.0.1',
+        keyspace: TEST_KEYSPACE
     },
 
-    CUSTOM: {
-        SCHEMA_CHECKS_COUNT: 10,
-        SCHEMA_CHECKS_INTERVAL: 250
+    custom: {
+        schemaChecksCount: 10,
+        schemaChecksInterval: 250
     }
 };
 const CASSANDRA_DRIVER_CONFIG = {

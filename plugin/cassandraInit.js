@@ -21,7 +21,7 @@ module.exports = (cassandraConfig, { tables, udts }) => {
 
 function ensureSchemasExist(cassandra, cassandraConfig) {
     return new Promise((resolve, reject) => {
-        const interval = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL) || 1000;
+        const interval = Number(cassandraConfig.custom.schemaChecksInterval) || 1000;
         const schemaCheck = createSchemaChecking(cassandra, cassandraConfig);
         const checking = setInterval(() => {
             schemaCheck().then(ok => {
@@ -39,7 +39,7 @@ function ensureSchemasExist(cassandra, cassandraConfig) {
 
 function createSchemaChecking(cassandra, cassandraConfig) {
     let checkNumber = 0;
-    const checksThreshold = Number(cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT) || 0;
+    const checksThreshold = Number(cassandraConfig.custom.schemaChecksCount) || 0;
     return () => {
         return new Promise((resolve, reject) => {
             if (checkNumber >= checksThreshold) {
