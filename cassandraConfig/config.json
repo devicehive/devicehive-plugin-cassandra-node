@@ -1,16 +1,16 @@
 {
-  "CONNECTION": {
-    "CONTACT_POINTS": "127.0.0.1",
-    "KEYSPACE": "",
-    "PROTOCOL_OPTIONS": {
-      "PORT": "9042"
+  "connection": {
+    "contactPoints": "127.0.0.1",
+    "keyspace": "",
+    "protocolOptions": {
+      "port": "9042"
     },
-    "USERNAME": "",
-    "PASSWORD": ""
+    "username": "",
+    "password": ""
   },
 
-  "CUSTOM": {
-    "SCHEMA_CHECKS_COUNT": 5,
-    "SCHEMA_CHECKS_INTERVAL": 1000
+  "custom": {
+    "schemaChecksCount": 5,
+    "schemaChecksInterval": 1000
   }
 }

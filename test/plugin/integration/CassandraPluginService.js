@@ -12,9 +12,9 @@ const CASSANDRA_CONFIG = {
         KEYSPACE: TEST_KEYSPACE
     },
 
-    CUSTOM: {
-        SCHEMA_CHECKS_COUNT: 10,
-        SCHEMA_CHECKS_INTERVAL: 250
+    custom: {
+        schemaChecksCount: 10,
+        schemaChecksInterval: 250
     }
 };
 const CASSANDRA_DRIVER_CONFIG = {

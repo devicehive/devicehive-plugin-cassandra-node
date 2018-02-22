@@ -37,8 +37,8 @@ describe('Plugin', () => {
 
         sinon.stub(cassandraStorage, 'connect').returns(Promise.resolve(cassandra));
 
-        cassandraConfig.CUSTOM.SCHEMA_CHECKS_COUNT = 10;
-        cassandraConfig.CUSTOM.SCHEMA_CHECKS_INTERVAL = 0;
+        cassandraConfig.custom.schemaChecksCount = 10;
+        cassandraConfig.custom.schemaChecksInterval = 0;
     });
 
     afterEach(() => {
@@ -116,8 +116,8 @@ describe('Plugin', () => {
         }).build();
 
         const conf = require('../../../plugin/config').cassandra;
-        const commandsUpdatesStoring = conf.CUSTOM.COMMAND_UPDATES_STORING;
-        conf.CUSTOM.COMMAND_UPDATES_STORING = true;
+        const commandsUpdatesStoring = conf.custom.commandUpdatesStoring;
+        conf.custom.commandUpdatesStoring = true;
 
         const plugin = new CassandraPluginService(cassandraConfig);
         sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
@@ -128,7 +128,7 @@ describe('Plugin', () => {
             plugin.handleMessage(msg);
 
             plugin.initCassandra.restore();
-            conf.CUSTOM.COMMAND_UPDATES_STORING = commandsUpdatesStoring;
+            conf.custom.commandUpdatesStoring = commandsUpdatesStoring;
 
             assert(cassandra.insertCommandUpdate.calledOnce);
 
@@ -144,8 +144,8 @@ describe('Plugin', () => {
         }).build();
 
         const conf = require('../../../plugin/config').cassandra;
-        const commandsUpdatesStoring = conf.CUSTOM.COMMAND_UPDATES_STORING;
-        conf.CUSTOM.COMMAND_UPDATES_STORING = false;
+        const commandsUpdatesStoring = conf.custom.commandUpdatesStoring;
+        conf.custom.commandUpdatesStoring = false;
 
         const plugin = new CassandraPluginService(cassandraConfig);
         sinon.stub(plugin, 'initCassandra').returns(Promise.resolve(cassandra));
@@ -156,7 +156,7 @@ describe('Plugin', () => {
             plugin.handleMessage(msg);
 
             plugin.initCassandra.restore();
-            conf.CUSTOM.COMMAND_UPDATES_STORING = commandsUpdatesStoring;
+            conf.custom.commandUpdatesStoring = commandsUpdatesStoring;
 
             assert(cassandra.updateCommand.calledOnce);
 

@@ -16,7 +16,7 @@ class CassandraPluginService extends PluginService {
         super();
 
         this._cassandraConf = cassandraConfig;
-        this._enableCommandUpdatesStoring = cassandraConfig.CUSTOM.COMMAND_UPDATES_STORING;
+        this._enableCommandUpdatesStoring = cassandraConfig.custom.commandUpdatesStoring;
     }
 
     /**
