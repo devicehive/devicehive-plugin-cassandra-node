@@ -10,17 +10,17 @@
     "dependencies": {
         "camel-case": "^3.0.0",
         "cassandra-cql-builder": "^1.0.2",
-        "cassandra-driver": "^3.3.0",
-        "devicehive-plugin-core": "^1.0.3",
+        "cassandra-driver": "^3.4.1",
+        "devicehive-plugin-core": "^1.1.1",
         "devicehive-proxy-message": "^1.0.11",
-        "json-evn-configurator": "^1.0.5",
+        "json-evn-configurator": "^1.0.6",
         "merge": "^1.2.0",
-        "smp-data-builder": "^1.0.3"
+        "smp-data-builder": "^1.0.4"
     },
     "devDependencies": {
         "mocha": "^4.1.0",
-        "nyc": "^11.4.1",
-        "sinon": "^4.1.6"
+        "nyc": "^11.5.0",
+        "sinon": "^4.4.2"
     },
     "scripts": {
         "start": "node ./plugin/index.js",
