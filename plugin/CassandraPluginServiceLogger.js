@@ -24,7 +24,7 @@ class CassandraPluginServiceLogger extends CassandraPluginService {
                 logger.warn(`Command hasn't been inserted, please check table group definitions: ${stringCommand}`);
             }
         }).catch(err => {
-            logger.error(`Command insert fail: ${err}, ${stringCommand}`);
+            logger.error(`Command insert fail: ${err} \n Query: ${err.query} \n command received ${stringCommand}`);
         });
     }
 
@@ -38,21 +38,21 @@ class CassandraPluginServiceLogger extends CassandraPluginService {
                 logger.warn(`Command update was not processed, please check table group definitions: ${stringCommand}`);
             }
         }).catch(err => {
-            logger.error(`Command update fail: ${err}, ${stringCommand}`);
+            logger.error(`Command update fail: ${err} \n Query: ${err.query} \n command received ${stringCommand}`);
         });
     }
 
     handleNotification(notification) {
         const stringNotification = JSON.stringify(notification);
 
-        return super.handleCommandUpdate(notification).then(res => {
+        return super.handleNotification(notification).then(res => {
             if (res) {
                 logger.debug(`Notification insert success: ${stringNotification}`);
             } else {
                 logger.warn(`Notification hasn't been inserted, please check table group definitions: ${stringNotification}`);
             }
         }).catch(err => {
-            logger.error(`Notification insert fail: ${err}, ${stringNotification}`);
+            logger.error(`Notification insert fail: ${err} \n Query: ${err.query} \n notification received ${stringNotification}`);
         });
     }
 }
