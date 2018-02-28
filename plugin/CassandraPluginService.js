@@ -30,9 +30,8 @@ class CassandraPluginService extends PluginService {
             tables: cassandraTables
         };
 
-        this.initCassandra(this._cassandraConf, schemas).then(cassandra => {
+        return this.initCassandra(this._cassandraConf, schemas).then(cassandra => {
             this.cassandra = cassandra;
-            console.log('Cassandra connection initialized');
         }).catch(err => {
             this.onError(err);
             process.exit(1);
@@ -41,21 +40,21 @@ class CassandraPluginService extends PluginService {
 
     handleCommand(command) {
         super.handleCommand(command);
-        this.cassandra.insertCommand(command);
+        return this.cassandra.insertCommand(command);
     }
 
     handleCommandUpdate(command) {
         super.handleCommandUpdate(command);
         if (this.isCommandUpdatesStoringEnabled()) {
-            this.cassandra.insertCommandUpdate(command);
-        } else {
-            this.cassandra.updateCommand(command);
+            return this.cassandra.insertCommandUpdate(command);
         }
+
+        return this.cassandra.updateCommand(command);
     }
 
     handleNotification(notification) {
         super.handleNotification(notification);
-        this.cassandra.insertNotification(notification);
+        return this.cassandra.insertNotification(notification);
     }
 
     initCassandra(conf, { udts, tables }) {
