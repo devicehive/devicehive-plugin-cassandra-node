@@ -12,6 +12,6 @@
   "custom": {
     "schemaChecksCount": 5,
     "schemaChecksInterval": 1000,
-    "logLevel": "debug"
+    "logLevel": "info"
   }
 }
