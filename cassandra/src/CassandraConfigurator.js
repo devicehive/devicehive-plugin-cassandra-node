@@ -101,8 +101,10 @@ class CassandraConfigurator {
             const propName = CassandraConfigurator.prepareConfigPropertyName(key);
 
             let value;
-            if (Utils.isObject(config[key])) {
+            if (Utils.isObject(config[key]) && !Array.isArray(config[key])) {
                 value = CassandraConfigurator.normalizeConfig(config[key]);
+            } else if (Array.isArray(config[key])) {
+                value = [].concat(config[key]);
             } else {
                 value = config[key] && Utils.booleanOrDefault(config[key].toString().trim());
                 if (value.includes && value.includes(',')) {

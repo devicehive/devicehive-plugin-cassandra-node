@@ -50,7 +50,7 @@ class TableMetadata extends Metadata {
             return false;
         }
 
-        const mdClusteringKeys = this._md.clusteringKeys;
+        const mdClusteringKeys = this._md.clusteringKeys || [];
         const mdOrder = this._md.clusteringOrder;
         const schemaOrder = jsonSchema.getOrder();
 
