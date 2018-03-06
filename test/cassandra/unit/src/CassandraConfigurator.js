@@ -154,4 +154,15 @@ describe('Cassandra Config', () => {
 
         assert.deepEqual(normalizedConf, expectedConf);
     });
+
+    it('Should not transform array config property to array-like object', () => {
+        const conf = {
+            contactPoints: [ '127.0.0.1' ]
+        };
+
+        const normalized = CassandraConfigurator.normalizeConfig(conf);
+
+        assert(Array.isArray(normalized.contactPoints));
+        assert.deepEqual(normalized.contactPoints, conf.contactPoints);
+    });
 });

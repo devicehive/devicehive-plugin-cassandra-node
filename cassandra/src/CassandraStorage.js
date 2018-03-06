@@ -55,7 +55,7 @@ class CassandraStorage {
                     .build();
 
                 if (Utils.isNotEmpty(query)) {
-                    execution.push(this._cassandra.execute(query))
+                    execution.push(this._execute(query))
                 }
             }
         }
@@ -78,11 +78,19 @@ class CassandraStorage {
             const schema = new JSONSchema(schemas[name]);
             if (schema.shouldBeDropped()) {
                 const query = queryBuilder.withName(name).build();
-                execution.push(this._cassandra.execute(query));
+                execution.push(this._execute(query));
             }
         }
 
         return execution.length ? Promise.all(execution) : Promise.resolve(null);
+    }
+
+    _execute(...args) {
+        return this._cassandra.execute(...args);
+    }
+
+    _batchExecute(...args) {
+        return this._cassandra.batch(...args);
     }
 
     /**
@@ -187,7 +195,7 @@ class CassandraStorage {
             queries.push(q.build());
         });
 
-        return queries.length ? this._cassandra.batch(queries, { prepare: true }) : Promise.resolve(null);
+        return queries.length ? this._batchExecute(queries, { prepare: true }) : Promise.resolve(null);
     }
 
     /**

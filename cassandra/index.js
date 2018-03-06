@@ -1,6 +1,8 @@
 const cassandraDriver = require('cassandra-driver');
+const debug = require('debug')('cassandrastoragemodule');
 
 const CassandraStorage = require('./src/CassandraStorage');
+const CassandraStorageLogger = require('./src/CassandraStorageLogger');
 const Utils = require('./lib/Utils');
 const CassandraConfigurator = require('./src/CassandraConfigurator');
 
@@ -14,8 +16,12 @@ module.exports = {
     connect(userConfig = {}) {
         const config = createConfig(userConfig);
         const cassandraClient = new cassandraDriver.Client(config.connection);
+        const logger = new CassandraStorageLogger(debug);
+        const cassandraStorageProvider = new CassandraStorage(cassandraClient);
 
-        return cassandraClient.connect().then(() => new CassandraStorage(cassandraClient));
+        logger.attach(cassandraStorageProvider);
+
+        return cassandraClient.connect().then(() => cassandraStorageProvider);
     }
 };
 
