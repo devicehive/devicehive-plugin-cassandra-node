@@ -40,16 +40,24 @@
       }
     },
 
-    "notifications": {
+    "notifications_by_timestamp": {
       "notification": "text",
-      "deviceId": "text",
       "timestamp": "timestamp",
+      "parameters": "text",
 
-      "__primaryKey__": [ "notification", "deviceId" ],
+      "__primaryKey__": [ "notification" ],
       "__clusteringKey__": [ "timestamp" ],
       "__order__": {
         "timestamp": "DESC"
       }
+    },
+
+    "notifications_by_deviceid": {
+      "notification": "text",
+      "deviceId": "text",
+
+      "__primaryKey__": [ "notification" ],
+      "__clusteringKey__": [ "deviceId" ]
     },
 
     "command_updates": {
@@ -66,6 +74,6 @@
   },
 
   "commandTables": ["commands"],
-  "notificationTables": ["notifications"],
+  "notificationTables": ["notifications_by_timestamp", "notifications_by_deviceid"],
   "commandUpdatesTables": ["command_updates"]
 }
