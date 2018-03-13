@@ -114,6 +114,7 @@ How to compose policies:
 As was mentioned above you can redefine config options with .env file. In this case nesting of JSON is replaced with ENVSEPARATOR value and cassandra prefix with scope (connection or custom) should be added. Example:
 
     ENVSEPARATOR=_
+    DEBUG=cassandrastoragemodule
     cassandra_connection_contactPoints=127.0.0.1, 192.168.1.1
     cassandra_connection_protocolOptions_port=9042
     cassandra_connection_policies_retry_type=RetryPolicy
@@ -121,6 +122,7 @@ As was mentioned above you can redefine config options with .env file. In this c
     cassandra_custom_schema_checks_interval=500
 
 **Note: plugin supports all config options related to Cassandra connection taken from [here](http://docs.datastax.com/en/developer/nodejs-driver/3.3/api/type.ClientOptions/)**
+If you want to have Cassandra module logging enabled put _DEBUG=cassandrastoragemodule_ in your environment variables.
 # Tables and user defined types
 This plugin allows you to configure tables and UDTs in JSON format which are to be created on application startup using schema creation service.
 ## Creating tables and UDTs
