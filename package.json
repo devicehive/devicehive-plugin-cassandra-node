@@ -12,16 +12,16 @@
         "cassandra-cql-builder": "^1.0.2",
         "cassandra-driver": "^3.4.1",
         "debug": "^3.1.0",
-        "devicehive-plugin-core": "^1.1.1",
+        "devicehive-plugin-core": "^1.1.2",
         "devicehive-proxy-message": "^1.0.11",
         "json-evn-configurator": "^1.0.6",
         "merge": "^1.2.0",
-        "winston": "^2.4.0"
+        "winston": "^2.4.1"
     },
     "devDependencies": {
         "mocha": "^4.1.0",
-        "nyc": "^11.5.0",
-        "sinon": "^4.4.2",
+        "nyc": "^11.6.0",
+        "sinon": "^4.4.6",
         "smp-data-builder": "^1.0.4"
     },
     "scripts": {
