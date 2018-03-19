@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  plugin:
+    build:
+      context: .
+      dockerfile: Dockerfile.plugin
+    env_file:
+      - .env
+    depends_on:
+      - schema
+    volumes:
+      - ./cassandraSchemas/:/usr/src/app/cassandraSchemas:ro
+      - ./cassandraConfig/:/usr/src/app/cassandraConfig:ro
+  schema:
+    build:
+      context: .
+      dockerfile: Dockerfile.schema
+    env_file:
+      - .env
+    volumes:
+      - ./cassandraSchemas/:/usr/src/app/cassandraSchemas:ro
+      - ./cassandraConfig/:/usr/src/app/cassandraConfig:ro

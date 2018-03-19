@@ -1,31 +1,44 @@
 const cassandraDriver = require('cassandra-driver');
+const debug = require('debug')('cassandrastoragemodule');
 
 const CassandraStorage = require('./src/CassandraStorage');
+const CassandraStorageLogger = require('./src/CassandraStorageLogger');
 const Utils = require('./lib/Utils');
-const CassandraUtils = require('./lib/CassandraUtils');
+const CassandraConfigurator = require('./src/CassandraConfigurator');
 
 const defaultConfig = require('./config');
 
 module.exports = {
     /**
      * Creates client connection to Cassandra
-     * @returns {CassandraStorage}
+     * @returns {Promise<CassandraStorage>}
      */
     connect(userConfig = {}) {
         const config = createConfig(userConfig);
         const cassandraClient = new cassandraDriver.Client(config.connection);
+        const logger = new CassandraStorageLogger(debug);
+        const cassandraStorageProvider = new CassandraStorage(cassandraClient);
 
-        return new CassandraStorage(cassandraClient);
+        logger.attach(cassandraStorageProvider);
+
+        return cassandraClient.connect().then(() => cassandraStorageProvider);
     }
 };
 
 function createConfig(userConfig) {
-    const conf = CassandraUtils.normalizeConfig(Utils.merge({}, defaultConfig, userConfig));
-    const { username, password } = conf.connection;
+    const conf = Utils.merge({}, defaultConfig, CassandraConfigurator.normalizeConfig(userConfig));
+    const configurator = new CassandraConfigurator(conf.connection);
 
-    if(username && password) {
-        conf.connection.authProvider = new cassandraDriver.auth.PlainTextAuthProvider(username, password);
-    }
+    configurator.configAuthProvider()
+        .configReconnection()
+        .configAddressResolution()
+        .configSpeculativeExecution()
+        .configTimestampGeneration()
+        .configLoadBalancing()
+        .configRetry();
+
+
+    conf.connection = configurator.config;
 
     return conf;
 }

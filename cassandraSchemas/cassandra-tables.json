@@ -1,0 +1,79 @@
+{
+  "tables": {
+    "commands": {
+      "command": "text",
+      "deviceId": "text",
+      "timestamp": "timestamp",
+      "id": "int",
+      "parameters": "frozen<params>",
+
+      "__primaryKey__": [ "command", "deviceId" ],
+      "__clusteringKey__": [ "timestamp" ],
+      "__order__": {
+        "timestamp": "DESC"
+      },
+      "__options__": {
+        "bloom_filter_fp_chance": 0.05,
+        "caching": {
+          "keys": "ALL",
+          "rows_per_partition": "NONE"
+        },
+        "comment": "",
+        "compaction": {
+          "class": "org.apache.cassandra.db.compaction.TimeWindowCompactionStrategy",
+          "max_threshold": 128,
+          "min_threshold": 12
+        },
+        "compression": {
+          "chunk_length_in_kb": 128,
+          "class": "org.apache.cassandra.io.compress.SnappyCompressor"
+        },
+        "crc_check_chance": 0.8,
+        "dclocal_read_repair_chance": 0.2,
+        "default_time_to_live": 60000,
+        "gc_grace_seconds": 432000,
+        "max_index_interval": 4096,
+        "memtable_flush_period_in_ms": 10000,
+        "min_index_interval": 256,
+        "read_repair_chance": 0.5,
+        "speculative_retry": "228ms"
+      }
+    },
+
+    "notifications_by_timestamp": {
+      "notification": "text",
+      "timestamp": "timestamp",
+      "parameters": "text",
+
+      "__primaryKey__": [ "notification" ],
+      "__clusteringKey__": [ "timestamp" ],
+      "__order__": {
+        "timestamp": "DESC"
+      }
+    },
+
+    "notifications_by_deviceid": {
+      "notification": "text",
+      "deviceId": "text",
+
+      "__primaryKey__": [ "notification" ],
+      "__clusteringKey__": [ "deviceId" ]
+    },
+
+    "command_updates": {
+      "command": "text",
+      "deviceId": "text",
+      "timestamp": "timestamp",
+
+      "__primaryKey__": [ "command", "deviceId" ],
+      "__clusteringKey__": [ "timestamp" ],
+      "__order__": {
+        "timestamp": "DESC"
+      }
+    }
+  },
+
+  "commandTables": ["commands"],
+  "notificationTables": ["notifications_by_timestamp", "notifications_by_deviceid"],
+  "commandUpdatesTables": ["command_updates"]
+}

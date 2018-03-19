@@ -2,13 +2,27 @@ const JSONSchema = require('./JSONSchema');
 const BaseSchemaBuilder = require('./BaseSchemaBuilder');
 
 class TableSchemaBuilder extends BaseSchemaBuilder {
+    constructor() {
+        super();
+        this._structureType = TableSchemaBuilder.TABLE_STRUCTURE;
+    }
+
     /**
-     * Specifies type of query
+     * Specifies create type of query
      * @param [tableName = '']
      * @returns {TableSchemaBuilder}
      */
     createTable(tableName = '') {
-        return this._create('TABLE', tableName);
+        return this._create(tableName);
+    }
+
+    /**
+     * Specifies drop type of query
+     * @param [tableName = '']
+     * @returns {TableSchemaBuilder}
+     */
+    dropTable(tableName) {
+        return this._drop(tableName);
     }
 
     /**
@@ -18,11 +32,12 @@ class TableSchemaBuilder extends BaseSchemaBuilder {
      */
     fromJSONSchema(schemaDescription) {
         const jsonSchema = new JSONSchema(schemaDescription);
+
         const columns = jsonSchema.buildColumnsDefinition();
         const keys = jsonSchema.buildKeys();
-        const ordering = jsonSchema.buildOrderDefinition();
+        const tableConfig = jsonSchema.buildTableConfiguration();
 
-        this._definition = `(${columns},${keys}) ${ordering}`.trim();
+        this._definition = `(${columns},${keys}) ${tableConfig}`.trim();
 
         return this;
     }

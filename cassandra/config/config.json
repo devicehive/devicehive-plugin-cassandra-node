@@ -1,0 +1,11 @@
+{
+  "connection": {
+    "contactPoints": "127.0.0.1",
+    "keyspace": "",
+    "protocolOptions": {
+      "port": 9042
+    },
+    "username": "cassandra",
+    "password": "cassandra"
+  }
+}

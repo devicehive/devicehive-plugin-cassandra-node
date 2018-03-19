@@ -1,0 +1,17 @@
+{
+  "connection": {
+    "contactPoints": "127.0.0.1",
+    "keyspace": "",
+    "protocolOptions": {
+      "port": "9042"
+    },
+    "username": "",
+    "password": ""
+  },
+
+  "custom": {
+    "schemaChecksCount": 5,
+    "schemaChecksInterval": 1000,
+    "logLevel": "info"
+  }
+}
