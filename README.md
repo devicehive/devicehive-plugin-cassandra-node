@@ -1,13 +1,13 @@
 # devicehive-plugin-cassandra-node
 DeviceHive Cassandra storage plugin written in Node.js
 # Overview
-This plugin allows you to store commands and notifications obtained through DeviceHive platform in Cassandra. This application consists of 2 parts: schema creation and actually plugin defined in docker-compose file.
+This plugin allows you to store commands and notifications obtained through the DeviceHive platform in Cassandra. This application consists of 2 parts: the schema creation service and the plugin defined in the docker-compose file. 
 <br /><br />
-On services start schema creation will run first [to create table and UDT schemas from JSON](#creating-tables-and-udts) and plugin will check schema creation state using some interval and defined number of checks. **Schema creation service always must be the only one node**. This was done to prevent concurrent schema modification that causes exception in Cassandra. But feel free to scale plugin service as much as you need.
+Upon starting the service the schema creation process will run first [to create a table and UDT schemas from JSON](#creating-tables-and-udts) and the plugin will check the state of the schema creation process using a predefined interval and number of checks. **The schema creation service always must only work on one node.** This was done to prevent concurrent schema modification that causes exceptions in Cassandra. But feel free to scale the plugin service as much as you need.
 <br /><br />
-On the very beginning of run time both: plugin and schema creation will [compare existent table and UDT schemas with what defined in JSON](#schema-comparison). In case of columns/fields set mismatch, column/field types mismatch, primary and clustering keys mismatch or ordering mismatch applications will fail. In case some UDT or table already exists it will notify user.
+At the very beginning of runtime both the plugin and schema creation service will [compare the existent table and UDT schemas with what is defined in JSON](#schema-comparison). In case of a column/field mismatch, column/field type mismatch, primary and clustering keys mismatch, or ordering mismatch, the application will fail. In case a UDT or table already exists it will notify the user. 
 <br /><br />
-When the message comes in it can be either command or command update or notification. Depends on what type it is data will be inserted in appropriate [group of tables](#table-groups). Also data will be filtered to [match described table schema](#data-model).
+When the message arrives it can be either a command, command update, or notification,.depending on what type it is data will be inserted into the appropriate [group of tables](#table-groups). Also the data will be filtered to [match the described table schema](#data-model).
 
 # How it works
 
