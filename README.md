@@ -50,6 +50,15 @@ When the message arrives it can be either a command, command update, or notifica
 
 Note: **If you have Cassandra running in separate Docker network or without any container please specify as contact points IP of Docker container or Docker host/another machine IP instead of localhost so plugin could connect to Cassandra(cassandra_connection_contactPoints in env file)**
 
+# Manual run (without Docker)
+
+ 1. Start DeviceHive
+ 2. Start Cassandra
+ 3. Create Cassandra keyspace
+ 4. Configure your plugin and Cassandra connections with *plugin/plugin-config.json* and *cassandraConfig/config.json* (see [Configuration](#configuration))
+ 5. Execute: `DEBUG=cassandrastoragemodule npm run schema` to create Cassandra schemas defined with JSON
+ 6. Execute: `DEBUG=cassandrastoragemodule npm start` to start actually plugin
+
 # Configuration
 ## Plugin
 Plugin part of configuration you can find [here](https://github.com/devicehive/devicehive-plugin-core-node#configuration).
