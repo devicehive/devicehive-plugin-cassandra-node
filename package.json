@@ -25,6 +25,7 @@
         "smp-data-builder": "^1.0.4"
     },
     "scripts": {
+        "plugin": "DEBUG=cassandrastoragemodule npm run schema && DEBUG=cassandrastoragemodule npm start",
         "start": "node ./plugin/index.js",
         "schema": "node ./plugin/cassandraSchema/index.js",
         "test": "./node_modules/.bin/mocha --recursive --exit ./test/*/unit/**/*.js",

@@ -56,8 +56,7 @@ Note: **If you have Cassandra running in separate Docker network or without any 
  2. Start Cassandra
  3. Create Cassandra keyspace
  4. Configure your plugin and Cassandra connections with *plugin/plugin-config.json* and *cassandraConfig/config.json* (see [Configuration](#configuration))
- 5. Execute: `DEBUG=cassandrastoragemodule npm run schema` to create Cassandra schemas defined with JSON
- 6. Execute: `DEBUG=cassandrastoragemodule npm start` to start actually plugin
+ 5. Execute: `npm run plugin` to create Cassandra schemas defined with JSON and to run plugin
 
 # Configuration
 ## Plugin
