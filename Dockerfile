@@ -21,6 +21,4 @@ RUN apk update \
     && npm cache clean --force \
     && apk del .gyp
 
-VOLUME ["/usr/src/app/cassandraSchemas", "/usr/src/app/cassandraConfig"]
-
-CMD ["npm", "run", "schema"]
+CMD ["npm", "start"]

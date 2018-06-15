@@ -14,10 +14,12 @@ When the message arrives it can be either a command, command update, or notifica
  1. Start DeviceHive
  2. Start Cassandra
  3. Create Cassandra keyspace
- 4. Create following .env file. **Replace username, password, plugin topic, localhost, keyspace name, cassandra username and password with your values.**
+ 4. Create following .env file. **Replace access and refresh tokens (or username and password), plugin topic, localhost, keyspace name, cassandra username and password with your values.**
 
     ENVSEPARATOR=_ <br />
-    plugin_user_login=username<br />
+    plugin_user_access_token=your.JWT.accessToken <br />
+    plugin_user_refresh_token=your.JWT.refreshToken <br />
+    plugin_user_login=username <br />
     plugin_user_password=password <br />
     plugin_plugin_topic=plugin topic <br />
     plugin_device_hive_plugin_ws_endpoint=ws://localhost:3001 <br />
@@ -44,6 +46,17 @@ When the message arrives it can be either a command, command update, or notifica
 	 notification | timestamp                       | parameters
 	--------------+---------------------------------+-------------------------------------------
 	         test | 2018-02-27 17:17:27.963000+0000 | { "yourParam": "custom parameter value" }
+
+
+Note: **If you have Cassandra running in separate Docker network or without any container please specify as contact points IP of Docker container or Docker host/another machine IP instead of localhost so plugin could connect to Cassandra(cassandra_connection_contactPoints in env file)**
+
+# Manual run (without Docker)
+
+ 1. Start DeviceHive
+ 2. Start Cassandra
+ 3. Create Cassandra keyspace
+ 4. Configure your plugin and Cassandra connections with *plugin/plugin-config.json* and *cassandraConfig/config.json* (see [Configuration](#configuration))
+ 5. Execute: `npm run plugin` to create Cassandra schemas defined with JSON and to run plugin
 
 # Configuration
 ## Plugin
